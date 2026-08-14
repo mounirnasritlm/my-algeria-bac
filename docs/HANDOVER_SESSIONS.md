@@ -74,3 +74,34 @@ and self-contained so any agent can resume.
 2. Commit the shell + docs milestone once the APK builds (or document the
    blocker if the network never allows it).
 3. Confirm final `applicationId` (D-005) before any release work.
+
+---
+
+## Session 2026-08-14 (final) — Debug APK builds successfully
+
+**Goal:** Produce `app-debug.apk` and close the shell milestone.
+
+**Done**
+- After the long dependency download completed (cached in
+  `~/.gradle/caches/modules-2`), the build failed only at
+  `stripDebugDebugSymbols`: it invoked `llvm-strip` which doesn't exist (the
+  NDK is not really installed — B-001 workaround).
+- Fix: disabled the `strip*DebugSymbols` Gradle tasks in
+  `android/app/build.gradle.kts` (`tasks.configureEach { if (name starts with
+  "strip" && ends with "DebugSymbols") enabled = false }`). Debug builds keep
+  the Flutter engine's debug symbols, so stripping is unnecessary.
+- Result: `flutter build apk --debug` → **BUILD SUCCESSFUL**, ~5 min (deps
+  cached), output `build/app/outputs/flutter-apk/app-debug.apk` (22 MB).
+- Milestone "core shell compiles" is now fully verified: analyze clean, test
+  1/1 pass, debug APK produced.
+
+**Remaining notes**
+- `applicationId dz.myalgeriabac.my_algeria_bac` still unconfirmed (D-005).
+- Release builds: verify strip behavior. The Flutter release engine .so files
+  are pre-stripped by Flutter, so the disabled strip task may be fine, but this
+  is UNVERIFIED — check before shipping a release (BUGS B-001).
+
+**Next steps** (in order)
+1. Confirm final `applicationId` (D-005).
+2. Data model backbone + persistence + vertical slices (Phase 1, TASKS.md).
+3. Wire Home dashboard to real data.

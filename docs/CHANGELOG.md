@@ -29,3 +29,9 @@ YYYY-MM-DD.
   etc.) are static placeholders — NOT real data.
 - No Android device/emulator available at build time; validation via
   `flutter analyze` + `flutter build apk --debug`.
+
+### Changed
+- `android/app/build.gradle.kts`: skip the `strip*DebugSymbols` Gradle tasks.
+  Debug builds keep the Flutter engine's debug symbols, so stripping is
+  unnecessary and would require a real NDK install (BUGS B-001).
+- Debug APK now builds: `build/app/outputs/flutter-apk/app-debug.apk` (~22 MB).

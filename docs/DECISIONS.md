@@ -74,10 +74,12 @@ entries; never rewrite history without a note.
 - DECISION: Skip the ~1 GB NDK 28.2 auto-download during `assembleDebug` by
   placing a fake installed-NDK marker at
   `C:\Android\ndk\28.2.13676358\source.properties` (`Pkg.Revision =
-  28.2.13676358`).
+  28.2.13676358`) AND disabling the `strip*DebugSymbols` Gradle tasks in
+  `android/app/build.gradle.kts`.
 - REASON: The network cannot complete the download in reasonable time; debug
-  builds don't run the native strip step. This is a build-environment
-  workaround, NOT a real NDK.
-- STATUS: TEMPORARY — accepted for `assembleDebug` only; must be removed and
-  replaced with a real NDK 28.2 install before any release/native build.
+  builds don't need to strip the engine .so files (debug engine keeps symbols
+  by design). This is a build-environment workaround, NOT a real NDK.
+- STATUS: TEMPORARY — accepted and verified for `assembleDebug` (APK builds).
+  Release/native stripping must be verified before shipping; installing the
+  real NDK 28.2 remains the fully safe option.
 - SOURCE: Engineering (BUGS B-001).

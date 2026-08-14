@@ -20,9 +20,14 @@ _No confirmed bugs yet._
     `ndkVersion = "$maxPluginNdkVersion"`.
   - Workaround applied: fake installed-NDK marker
     `C:\Android\ndk\28.2.13676358\source.properties` (`Pkg.Revision =
-    28.2.13676358`). UNVERIFIED whether the build succeeds end-to-end.
-  - Risk: a real NDK is NOT installed. If a build task invokes NDK tools
-    (e.g. `stripDebugSymbols` for native stripping), it will fail. Verify the
-    full `assembleDebug` result before trusting this.
-  - Steps to verify: run `flutter build apk --debug` to completion; for release
-    builds, install the real NDK 28.2.
+    28.2.13676358`). This alone let AGP skip the download but the build then
+    failed at `stripDebugDebugSymbols` (no real `llvm-strip`).
+  - RESOLVED for debug builds: `android/app/build.gradle.kts` now disables the
+    `strip*DebugSymbols` tasks. Debug engine .so files keep their symbols by
+    design, so stripping is not needed. `assembleDebug` builds successfully.
+  - UNVERIFIED for release builds: Flutter's release engine .so files are
+    pre-stripped by Flutter, so disabling the strip task may be acceptable,
+    but confirm before shipping a release. Installing the real NDK 28.2 is the
+    fully safe option.
+  - Steps to verify: run `flutter build apk --debug` to completion (done); for
+    release builds, build `app-release.apk` and inspect native lib sizes.
