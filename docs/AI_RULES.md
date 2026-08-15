@@ -1,5 +1,9 @@
 # MY Algeria BAC — AI Development Rules
 
+> **Contract:** Before any coding work, read `docs/AI_DEVELOPMENT_RULES.md`.
+> It is the non-negotiable development contract (inspect-first, no invented
+> APIs/models, no silent architecture changes, XP/streak rules never in UI).
+
 ## 1. Project purpose
 
 MY Algeria BAC is an Algerian secondary-school and BAC preparation

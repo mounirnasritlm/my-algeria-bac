@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../data/achievement_engine.dart';
+import '../data/achievement_repository.dart';
 import '../data/content_repository.dart';
 import '../data/progress_repository.dart';
 import '../models/question.dart';
 import '../models/streak.dart';
+import '../services/gamification_service.dart';
 import '../services/streak_service.dart';
 import 'quiz_result_page.dart';
 
@@ -26,6 +29,11 @@ class QuizPage extends StatefulWidget {
 class _QuizPageState extends State<QuizPage> {
   final ProgressRepository repository = ProgressRepository();
   final StreakService _streak = StreakService();
+
+  /// Achievement + level evaluation after the quiz, so the result screen can
+  /// celebrate level-ups and newly earned achievements. Lazily created so the
+  /// widget stays cheap to construct and test.
+  GamificationService? _gamification;
 
   /// Wall-clock start of this quiz, used to derive real study minutes for the
   /// streak. A distinct activity id per run prevents double counting.
@@ -167,10 +175,26 @@ class _QuizPageState extends State<QuizPage> {
       xpEarned: quizScore.round(),
     );
 
-    await _streak.recordLearningActivity(
+    final recorded = await _streak.recordLearningActivity(
       activityId: 'quiz_${widget.lessonId}_${_startedAt.millisecondsSinceEpoch}',
       type: StreakActivityType.quiz,
       minutes: DateTime.now().difference(_startedAt).inMinutes,
+    );
+
+    final gamification = _gamification ??=
+        GamificationService(
+          progressRepository: repository,
+          streakRepository: _streak.repository,
+          achievementRepository: AchievementRepository(),
+          contentRepository: widget.contentRepository,
+        );
+
+    final result = await gamification.evaluateAfterActivity(
+      activity: CompletedActivity(
+        type: AchievementActivityType.quiz,
+        wasPerfect: questions.isNotEmpty && correctCount == questions.length,
+      ),
+      extraXp: recorded ? quizScore.round() : 0,
     );
 
     if (!mounted) {
@@ -182,6 +206,7 @@ class _QuizPageState extends State<QuizPage> {
         builder: (_) => QuizResultPage(
           totalQuestions: questions.length,
           correctAnswers: correctCount,
+          gamification: result,
         ),
       ),
     );

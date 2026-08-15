@@ -9,17 +9,59 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:my_algeria_bac/data/achievement_engine.dart';
+import 'package:my_algeria_bac/data/achievement_repository.dart';
+import 'package:my_algeria_bac/data/content_repository.dart';
 import 'package:my_algeria_bac/data/exam_session_repository.dart';
 import 'package:my_algeria_bac/data/json_content_repository.dart';
+import 'package:my_algeria_bac/data/levels_engine.dart';
 import 'package:my_algeria_bac/data/progress_repository.dart';
+import 'package:my_algeria_bac/data/streak_repository.dart';
 import 'package:my_algeria_bac/models/saved_exam_session.dart';
 import 'package:my_algeria_bac/models/streak.dart';
 import 'package:my_algeria_bac/screens/bac_page.dart';
 import 'package:my_algeria_bac/screens/exam_session_page.dart';
+import 'package:my_algeria_bac/services/gamification_service.dart';
 import 'package:my_algeria_bac/services/streak_service.dart';
 
 import 'helpers/demo_content_assets.dart';
 import 'helpers/fake_asset_bundle.dart';
+
+/// Real [GamificationService] logic would hit sqflite through the real
+/// repositories, so the widget tests swap in a service whose evaluation is
+/// canned. The page still exercises its own submit/report flow end to end.
+class _FakeGamificationService extends GamificationService {
+  _FakeGamificationService()
+      : super(
+          progressRepository: _NoopProgressRepository(),
+          streakRepository: _NoopStreakRepository(),
+          achievementRepository: _NoopAchievementRepository(),
+          contentRepository: _NoopContentRepository(),
+        );
+
+  @override
+  Future<GamificationResult> evaluateAfterActivity({
+    required CompletedActivity activity,
+    int extraXp = 0,
+  }) async {
+    return GamificationResult(
+      newAchievements: const [],
+      levelUp: null,
+      levelInfo: levelInfoFor(0),
+    );
+  }
+}
+
+class _NoopProgressRepository extends ProgressRepository {}
+
+class _NoopStreakRepository extends StreakRepository {}
+
+class _NoopAchievementRepository extends AchievementRepository {}
+
+class _NoopContentRepository extends ContentRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 void main() {
   testWidgets('BAC Arena lists exams and opens the Boss',
@@ -79,6 +121,7 @@ void main() {
           progressRepository: progress,
           sessionRepository: sessions,
           streakService: streak,
+          gamificationService: _FakeGamificationService(),
         ),
       ),
     );
@@ -181,6 +224,7 @@ void main() {
           progressRepository: progress,
           sessionRepository: sessions,
           streakService: streak,
+          gamificationService: _FakeGamificationService(),
         ),
       ),
     );

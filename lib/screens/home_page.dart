@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../data/bac_ranks.dart';
 import '../data/campaign_engine.dart';
 import '../data/content_repository.dart';
+import '../data/levels_engine.dart';
 import '../data/progress_repository.dart';
 import '../data/streak_repository.dart';
 import '../models/bac_campaign.dart';
 import '../models/concept_mastery.dart';
 import '../models/exam.dart';
 import '../models/subject.dart';
+import '../services/gamification_service.dart';
 import 'bac_page.dart';
 import 'mission_page.dart';
 import 'streak_page.dart';
@@ -41,6 +44,7 @@ class _HomePageState extends State<HomePage> {
   int _currentStreak = 0;
   int _longestStreak = 0;
   int _xp = 0;
+  BacRankView? _rank;
   int _questionsAnswered = 0;
   double _overallAccuracy = 0;
   int _attentionConcepts = 0;
@@ -113,6 +117,9 @@ class _HomePageState extends State<HomePage> {
 
     final xp = await _progress.getTotalXp();
 
+    final level = levelInfoFor(xp);
+    final rank = rankForLevel(level.level);
+
     if (!mounted) {
       return;
     }
@@ -135,6 +142,11 @@ class _HomePageState extends State<HomePage> {
       _subjectBars = subjectBars;
       _exams = exams;
       _xp = xp;
+      _rank = BacRankView(
+        title: rank.title,
+        subtitle: rank.subtitle,
+        level: level.level,
+      );
     });
   }
 
@@ -302,10 +314,42 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+        _rankChip(),
+        const SizedBox(width: 8),
         _streakChip(),
         const SizedBox(width: 8),
         _xpChip(),
       ],
+    );
+  }
+
+  Widget _rankChip() {
+    final rank = _rank;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F3FF),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            rank == null ? 'Lv —' : 'Lv ${rank.level}',
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+          if (rank != null)
+            Text(
+              rank.title,
+              style: TextStyle(
+                color: Colors.grey.shade600,
+                fontSize: 9,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+        ],
+      ),
     );
   }
 

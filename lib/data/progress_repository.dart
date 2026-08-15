@@ -375,6 +375,36 @@ class ProgressRepository {
     }
   }
 
+  /// Number of lessons with a saved result (a finished lesson quiz).
+  Future<int> getSavedLessonCount() async {
+    try {
+      final db = await ProgressDatabase.instance.database;
+
+      final result = await db.rawQuery(
+        'SELECT COUNT(*) AS count FROM lessons',
+      );
+
+      return (result.first['count'] as num).toInt();
+    } catch (_) {
+      return 0;
+    }
+  }
+
+  /// Number of full BAC exams ever completed.
+  Future<int> getExamsCompleted() async {
+    try {
+      final db = await ProgressDatabase.instance.database;
+
+      final result = await db.rawQuery(
+        'SELECT COUNT(*) AS count FROM exam_attempts',
+      );
+
+      return (result.first['count'] as num).toInt();
+    } catch (_) {
+      return 0;
+    }
+  }
+
   Future<void> saveQuestionAttempt({
     required String questionId,
     required String lessonId,

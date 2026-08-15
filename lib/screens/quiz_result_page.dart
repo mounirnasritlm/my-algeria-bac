@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../models/achievement.dart';
+import '../services/gamification_service.dart';
+
 class QuizResultPage extends StatelessWidget {
   final int totalQuestions;
   final int correctAnswers;
+
+  /// Achievement/level outcome of the finished quiz, when one was computed.
+  final GamificationResult? gamification;
 
   const QuizResultPage({
     super.key,
     required this.totalQuestions,
     required this.correctAnswers,
+    this.gamification,
   });
 
   double get accuracy {
@@ -90,6 +97,9 @@ class QuizResultPage extends StatelessWidget {
 
                 const SizedBox(height: 28),
 
+                if (gamification != null)
+                  _GamificationSummary(result: gamification!),
+
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -152,6 +162,123 @@ class QuizResultPage extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _GamificationSummary extends StatelessWidget {
+  final GamificationResult result;
+
+  const _GamificationSummary({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    final levelUp = result.levelUp;
+
+    return Column(
+      children: [
+        if (levelUp != null) ...[
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFFF59E0B), Color(0xFFF97316)],
+              ),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: [
+                const Text('🎉', style: TextStyle(fontSize: 34)),
+                const SizedBox(height: 6),
+                const Text(
+                  'LEVEL UP!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${levelUp.oldLevel} → ${levelUp.newLevel}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 28,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (result.hasNewAchievements) ...[
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Achievement unlocked',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  for (final achievement in result.newAchievements)
+                    _AchievementRow(achievement: achievement),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+      ],
+    );
+  }
+}
+
+class _AchievementRow extends StatelessWidget {
+  final Achievement achievement;
+
+  const _AchievementRow({required this.achievement});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Text(achievement.icon, style: const TextStyle(fontSize: 26)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  achievement.title,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                Text(
+                  achievement.description,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            '+${achievement.xpReward}',
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+        ],
       ),
     );
   }

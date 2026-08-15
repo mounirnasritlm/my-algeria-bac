@@ -9,7 +9,7 @@ class ProgressDatabase {
   static final ProgressDatabase instance = ProgressDatabase._();
 
   static const _databaseName = 'user_progress.db';
-  static const _databaseVersion = 7;
+  static const _databaseVersion = 8;
 
   Future<Database>? _database;
 
@@ -47,6 +47,7 @@ class ProgressDatabase {
     await _createV4Tables(db);
     await _createV5Tables(db);
     await _createV7Tables(db);
+    await _createV8Tables(db);
   }
 
   Future<void> _upgradeDatabase(
@@ -82,6 +83,9 @@ class ProgressDatabase {
     }
     if (oldVersion < 7) {
       await _createV7Tables(db);
+    }
+    if (oldVersion < 8) {
+      await _createV8Tables(db);
     }
   }
 
@@ -241,6 +245,55 @@ class ProgressDatabase {
       )
       ''',
     );
+  }
+
+  /// Achievements: one row per unlocked achievement, so an achievement is
+  /// awarded exactly once (unique type) and never loses its XP.
+  Future<void> _createV8Tables(Database db) async {
+    await db.execute(
+      '''
+      CREATE TABLE achievements (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        type TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        icon TEXT NOT NULL,
+        xp_reward INTEGER NOT NULL,
+        unlocked_at INTEGER NOT NULL
+      )
+      ''',
+    );
+  }
+
+  Future<bool> insertAchievement({
+    required String type,
+    required String title,
+    required String description,
+    required String icon,
+    required int xpReward,
+  }) async {
+    final db = await database;
+
+    final result = await db.insert(
+      'achievements',
+      {
+        'type': type,
+        'title': title,
+        'description': description,
+        'icon': icon,
+        'xp_reward': xpReward,
+        'unlocked_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+
+    // 0 means the row already existed (unique type) and was ignored.
+    return result != 0;
+  }
+
+  Future<List<Map<String, Object?>>> getAllAchievements() async {
+    final db = await database;
+    return db.query('achievements', orderBy: 'unlocked_at ASC');
   }
 
   Future<String?> getSetting(String key) async {

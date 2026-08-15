@@ -2,16 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../data/achievement_engine.dart';
+import '../data/achievement_repository.dart';
 import '../data/content_repository.dart';
 import '../data/exam_scoring.dart';
 import '../data/exam_session_repository.dart';
 import '../data/progress_repository.dart';
+import '../data/streak_engine.dart';
 import '../models/exam.dart';
 import '../models/exam_attempt.dart';
 import '../models/exam_session.dart';
 import '../models/question.dart';
 import '../models/saved_exam_session.dart';
 import '../models/streak.dart';
+import '../services/gamification_service.dart';
 import '../services/streak_service.dart';
 import 'exam_report_page.dart';
 
@@ -34,6 +38,10 @@ class ExamSessionPage extends StatefulWidget {
   /// Injectable for tests; defaults to the real service.
   final StreakService? streakService;
 
+  /// Injectable for tests; defaults to the real service. The default is
+  /// backed by the real repositories, so production never needs to pass it.
+  final GamificationService? gamificationService;
+
   const ExamSessionPage({
     super.key,
     required this.contentRepository,
@@ -41,6 +49,7 @@ class ExamSessionPage extends StatefulWidget {
     this.progressRepository,
     this.sessionRepository,
     this.streakService,
+    this.gamificationService,
   });
 
   @override
@@ -54,6 +63,9 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
       widget.sessionRepository ?? ExamSessionRepository();
   late final StreakService _streak =
       widget.streakService ?? StreakService();
+
+  /// Achievement/level evaluation after submission, passed to the report.
+  GamificationService? _gamification;
 
   Exam? _exam;
   List<Question> _questions = const [];
@@ -275,10 +287,28 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
 
     // A completed BAC Boss is a real, qualifying streak activity — recorded
     // only once per session, and only when the exam actually finished.
-    await _streak.recordLearningActivity(
+    final recorded = await _streak.recordLearningActivity(
       activityId: 'bac_boss_$sessionId',
       type: StreakActivityType.bacBoss,
       minutes: attempt.timeUsedSeconds ~/ 60,
+    );
+
+    final gamification = _gamification ??=
+        widget.gamificationService ??
+        GamificationService(
+          progressRepository: _progress,
+          streakRepository: _streak.repository,
+          achievementRepository: AchievementRepository(),
+          contentRepository: widget.contentRepository,
+        );
+
+    final result = await gamification.evaluateAfterActivity(
+      activity: CompletedActivity(
+        type: AchievementActivityType.exam,
+        wasPerfect: attempt.correctCount == attempt.totalQuestions,
+        subjectId: _exam!.subjectId,
+      ),
+      extraXp: recorded ? calculateStreakXp(type: StreakActivityType.bacBoss, minutes: attempt.timeUsedSeconds ~/ 60) : 0,
     );
 
     if (!mounted) {
@@ -291,6 +321,7 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
           contentRepository: widget.contentRepository,
           attempt: attempt,
           autoSubmitted: autoSubmitted,
+          gamification: result,
         ),
       ),
     );

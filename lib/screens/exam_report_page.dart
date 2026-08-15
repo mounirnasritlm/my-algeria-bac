@@ -6,6 +6,7 @@ import '../data/exam_scoring.dart';
 import '../data/progress_repository.dart';
 import '../models/comeback.dart';
 import '../models/exam_attempt.dart';
+import '../services/gamification_service.dart';
 import 'comeback_page.dart';
 import 'exam_session_page.dart';
 
@@ -18,11 +19,15 @@ class ExamReportPage extends StatefulWidget {
 
   final bool autoSubmitted;
 
+  /// Achievement/level outcome of the finished exam, when one was computed.
+  final GamificationResult? gamification;
+
   const ExamReportPage({
     super.key,
     required this.contentRepository,
     required this.attempt,
     required this.autoSubmitted,
+    this.gamification,
   });
 
   @override
@@ -144,6 +149,8 @@ class _ExamReportPageState extends State<ExamReportPage> {
               ),
             ),
             const SizedBox(height: 20),
+            if (widget.gamification != null)
+              _ReportGamification(result: widget.gamification!),
             Row(
               children: [
                 Expanded(
@@ -384,6 +391,92 @@ class _ComebackCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _ReportGamification extends StatelessWidget {
+  final GamificationResult result;
+
+  const _ReportGamification({required this.result});
+
+  @override
+  Widget build(BuildContext context) {
+    final levelUp = result.levelUp;
+
+    if (levelUp == null && !result.hasNewAchievements) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFFF59E0B), Color(0xFFF97316)],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (levelUp != null) ...[
+              const Text(
+                '🎉 LEVEL UP!',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Level ${levelUp.oldLevel} → ${levelUp.newLevel}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ],
+            if (result.hasNewAchievements) ...[
+              if (levelUp != null) const SizedBox(height: 12),
+              for (final achievement in result.newAchievements)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    children: [
+                      Text(
+                        achievement.icon,
+                        style: const TextStyle(fontSize: 20),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          achievement.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '+${achievement.xpReward} XP',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ],
+        ),
       ),
     );
   }
