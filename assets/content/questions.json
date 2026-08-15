@@ -1,0 +1,108 @@
+[
+  {
+    "id": "demo_math_001",
+    "subjectId": "math",
+    "lessonId": "math_functions",
+    "conceptId": "function_definition",
+    "type": "multipleChoice",
+    "prompt": "Which symbol is commonly used for a function?",
+    "options": ["f", "z", "q", "x"],
+    "correctIndex": 0,
+    "explanation": "In standard notation, f denotes a function.",
+    "difficulty": 1,
+    "source": { "sourceType": "demo_content", "verified": false }
+  },
+  {
+    "id": "demo_math_002",
+    "subjectId": "math",
+    "lessonId": "math_functions",
+    "conceptId": "domain",
+    "type": "multipleChoice",
+    "prompt": "What does the domain of a function represent?",
+    "options": [
+      "The set of input values",
+      "The set of output values",
+      "The slope of the function",
+      "The graph of the function"
+    ],
+    "correctIndex": 0,
+    "explanation": "The domain is the set of all valid inputs.",
+    "difficulty": 1,
+    "source": { "sourceType": "demo_content", "verified": false }
+  },
+  {
+    "id": "demo_math_003",
+    "subjectId": "math",
+    "lessonId": "math_functions",
+    "conceptId": "function_definition",
+    "type": "multipleChoice",
+    "prompt": "What is the value of f(x) = 2x when x = 3?",
+    "options": ["5", "6", "8", "9"],
+    "correctIndex": 1,
+    "explanation": "f(3) = 2 × 3 = 6.",
+    "difficulty": 2,
+    "source": { "sourceType": "demo_content", "verified": false }
+  },
+  {
+    "id": "demo_math_004",
+    "subjectId": "math",
+    "lessonId": "math_derivatives",
+    "conceptId": "derivative_definition",
+    "type": "multipleChoice",
+    "prompt": "The derivative of a function measures which of these?",
+    "options": [
+      "The rate of change",
+      "The area under the curve",
+      "The roots of the function",
+      "The domain of the function"
+    ],
+    "correctIndex": 0,
+    "explanation": "The derivative measures the rate of change.",
+    "difficulty": 2,
+    "source": { "sourceType": "demo_content", "verified": false }
+  },
+  {
+    "id": "demo_math_005",
+    "subjectId": "math",
+    "lessonId": "math_derivatives",
+    "conceptId": "derivative_definition",
+    "type": "multipleChoice",
+    "prompt": "What is the derivative of x squared?",
+    "options": ["x", "2x", "x squared", "1"],
+    "correctIndex": 1,
+    "explanation": "The power rule gives 2x.",
+    "difficulty": 2,
+    "source": { "sourceType": "demo_content", "verified": false }
+  },
+  {
+    "id": "demo_phy_001",
+    "subjectId": "physics",
+    "lessonId": "physics_motion",
+    "conceptId": "motion_basics",
+    "type": "multipleChoice",
+    "prompt": "Velocity is best described as which of these?",
+    "options": [
+      "Distance traveled",
+      "Speed with a direction",
+      "Total displacement",
+      "Acceleration"
+    ],
+    "correctIndex": 1,
+    "explanation": "Velocity is a vector: speed plus direction.",
+    "difficulty": 1,
+    "source": { "sourceType": "demo_content", "verified": false }
+  },
+  {
+    "id": "demo_phy_002",
+    "subjectId": "physics",
+    "lessonId": "physics_motion",
+    "conceptId": "motion_basics",
+    "type": "multipleChoice",
+    "prompt": "Which unit is used to measure speed?",
+    "options": ["m/s", "m", "s", "kg"],
+    "correctIndex": 0,
+    "explanation": "Speed is distance per time, so m/s.",
+    "difficulty": 1,
+    "source": { "sourceType": "demo_content", "verified": false }
+  }
+]

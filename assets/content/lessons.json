@@ -1,0 +1,29 @@
+[
+  {
+    "id": "math_functions",
+    "subjectId": "math",
+    "title": "Functions",
+    "description": "Introduction to mathematical functions.",
+    "conceptIds": ["function_definition", "domain"],
+    "estimatedMinutes": 15,
+    "source": { "sourceType": "demo_content", "verified": false }
+  },
+  {
+    "id": "math_derivatives",
+    "subjectId": "math",
+    "title": "Derivatives",
+    "description": "Introduction to derivative concepts.",
+    "conceptIds": ["derivative_definition"],
+    "estimatedMinutes": 20,
+    "source": { "sourceType": "demo_content", "verified": false }
+  },
+  {
+    "id": "physics_motion",
+    "subjectId": "physics",
+    "title": "Motion",
+    "description": "Introduction to motion.",
+    "conceptIds": ["motion_basics"],
+    "estimatedMinutes": 15,
+    "source": { "sourceType": "demo_content", "verified": false }
+  }
+]

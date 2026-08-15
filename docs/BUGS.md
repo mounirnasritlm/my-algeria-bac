@@ -22,12 +22,19 @@ _No confirmed bugs yet._
     `C:\Android\ndk\28.2.13676358\source.properties` (`Pkg.Revision =
     28.2.13676358`). This alone let AGP skip the download but the build then
     failed at `stripDebugDebugSymbols` (no real `llvm-strip`).
-  - RESOLVED for debug builds: `android/app/build.gradle.kts` now disables the
-    `strip*DebugSymbols` tasks. Debug engine .so files keep their symbols by
-    design, so stripping is not needed. `assembleDebug` builds successfully.
-  - UNVERIFIED for release builds: Flutter's release engine .so files are
-    pre-stripped by Flutter, so disabling the strip task may be acceptable,
-    but confirm before shipping a release. Installing the real NDK 28.2 is the
-    fully safe option.
-  - Steps to verify: run `flutter build apk --debug` to completion (done); for
-    release builds, build `app-release.apk` and inspect native lib sizes.
+  - BROKEN resolution (reverted): disabling the `strip*DebugSymbols` tasks in
+    `android/app/build.gradle.kts`. In AGP 9.1 a disabled task's outputs are
+    treated as empty, so `stripped_native_libs` was empty and the APK shipped
+    with **zero native libs** -> `MissingLibraryException: Could not find
+    'libflutter.so'` crash on launch.
+  - CURRENT resolution: keep the strip tasks enabled and provide a no-op
+    `llvm-strip.exe` stub (compiled from `strip_stub.cs`, copies the input to
+    the output instead of stripping) at
+    `C:\Android\ndk\28.2.13676358\toolchains\llvm\prebuilt\windows-x86_64\bin\`
+    (also as the per-ABI `*-strip.exe` variants AGP probes). Debug engine .so
+    files keep their symbols by design, so not stripping them is harmless.
+    Debug APKs are consequently large (~650 MB arm64-only) but runnable.
+  - STILL OPEN: release builds. Flutter's release engine .so files are
+    pre-stripped, but a release APK must be verified end-to-end. Installing
+    the real NDK 28.2 (the ~1 GB download AGP wants) is the fully safe option
+    and would also shrink debug APKs back to a normal size.

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "math",
+    "name": "Mathematics",
+    "language": "fr",
+    "icon": "∑",
+    "lessonIds": ["math_functions", "math_derivatives"]
+  },
+  {
+    "id": "physics",
+    "name": "Physics",
+    "language": "fr",
+    "icon": "⚡",
+    "lessonIds": ["physics_motion"]
+  }
+]

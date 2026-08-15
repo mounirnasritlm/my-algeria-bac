@@ -83,3 +83,29 @@ entries; never rewrite history without a note.
   Release/native stripping must be verified before shipping; installing the
   real NDK 28.2 remains the fully safe option.
 - SOURCE: Engineering (BUGS B-001).
+  - UPDATE 2026-08-14: the "disable the `strip*DebugSymbols` tasks" half was
+    REVERTED — in AGP 9.1 a disabled task ships zero native libs, so the APK
+    crashed on launch (`MissingLibraryException: libflutter.so`). Current
+    workaround: keep strip tasks enabled and provide a no-op `llvm-strip.exe`
+    stub in the fake NDK's toolchain bin (BUGS B-001). Debug APKs are now
+    large (~650 MB arm64-only) but runnable.
+
+## D-009 — Content provenance + question type schema (FIX-01..05)
+
+- DECISION: Add `models/source.dart` (`ContentSource`: sourceType, sourceName,
+  sourceYear, sourceUrl, sourcePage, verified) and require it on every
+  educational content item (`Lesson.source`, `Concept.source`,
+  `Question.source` + `validationStatus`). Extend `Question` to the Rules §10
+  shape (`subjectId`, `conceptId`, `QuestionType { multipleChoice, trueFalse,
+  numeric }`, `prompt`, `options`, per-type answers `correctIndex?` /
+  `numericAnswer?`, `explanation`, `difficulty`). Demo content is flagged
+  `CONTENT_REQUIRES_VERIFICATION` / `verified: false`. The quiz engine only
+  admits choice-type questions for now (numeric/multiSelect reserved).
+- REASON: Rules.md §2 (provenance on all content) and §10 (Question shape);
+  CODE_REVIEW FIX-01..05 are Priority 1 — the schema is the foundation and
+  persistence/quiz depend on it. Provenance from day one, types extensible
+  without rewriting the engine.
+- STATUS: Accepted. DB schema deliberately NOT changed yet: `question_attempts`
+  still stores choice indexes only — FIX-20 + a schema v2 migration are planned
+  before any answer model generalization is persisted.
+- SOURCE: Rules.md §2/§10; CODE_REVIEW FIX-01..05.

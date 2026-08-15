@@ -35,6 +35,14 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    packaging {
+        jniLibs {
+            // Compress native libraries instead of storing them page-aligned
+            // and uncompressed, which keeps the APK small.
+            useLegacyPackaging = true
+        }
+    }
 }
 
 kotlin {
@@ -45,13 +53,4 @@ kotlin {
 
 flutter {
     source = "../.."
-}
-
-// Debug builds keep the Flutter engine's debug symbols, so stripping is
-// unnecessary and would require a real NDK install (see docs/BUGS.md B-001).
-// Skip the strip tasks so assembleDebug works without the NDK.
-tasks.configureEach {
-    if (name.startsWith("strip") && name.endsWith("DebugSymbols")) {
-        enabled = false
-    }
 }
