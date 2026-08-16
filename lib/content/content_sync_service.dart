@@ -37,6 +37,7 @@ class ContentSyncService {
       ContentReleaseValidator(ContentHashService());
 
   Future<ContentSyncResult> sync() async {
+    final checkedAt = DateTime.now();
     final cachedVersion = await cache.activeVersion();
     final hasActive = await cache.hasActive();
 
@@ -45,7 +46,7 @@ class ContentSyncService {
       remoteManifestRaw = await _remote.loadFile(manifestFile);
     } catch (error) {
       return _remoteFailed(cachedVersion, hasActive, error,
-          remoteReached: false);
+          remoteReached: false, checkedAt: checkedAt);
     }
 
     final ContentManifest remoteManifest;
@@ -58,6 +59,7 @@ class ContentSyncService {
         cachedVersion,
         hasActive,
         'Remote manifest could not be parsed; keeping previous bundle.',
+        checkedAt: checkedAt,
       );
     }
 
@@ -68,6 +70,7 @@ class ContentSyncService {
         status: ContentSyncStatus.upToDate,
         currentVersion: cachedVersion,
         previousVersion: cachedVersion,
+        checkedAt: checkedAt,
       );
     }
 
@@ -82,9 +85,11 @@ class ContentSyncService {
           cachedVersion,
           hasActive,
           'Remote bundle is missing files; keeping previous bundle.',
+          checkedAt: checkedAt,
         );
       }
-      return _remoteFailed(cachedVersion, hasActive, error, remoteReached: true);
+      return _remoteFailed(cachedVersion, hasActive, error,
+          remoteReached: true, checkedAt: checkedAt);
     }
 
     final validation = await _validator.validateRelease(
@@ -98,6 +103,7 @@ class ContentSyncService {
         hasActive,
         'Remote bundle failed validation; keeping previous bundle.',
         validation: validation,
+        checkedAt: checkedAt,
       );
     }
 
@@ -110,6 +116,7 @@ class ContentSyncService {
         cachedVersion,
         hasActive,
         'Could not write the remote bundle to the cache: $error',
+        checkedAt: checkedAt,
       );
     }
 
@@ -119,6 +126,7 @@ class ContentSyncService {
           : ContentSyncStatus.firstInstall,
       currentVersion: remoteVersion,
       previousVersion: cachedVersion,
+      checkedAt: checkedAt,
     );
   }
 
@@ -127,6 +135,7 @@ class ContentSyncService {
     bool hasActive,
     String message, {
     ContentReleaseValidationResult? validation,
+    required DateTime checkedAt,
   }) {
     return ContentSyncResult(
       status: hasActive
@@ -136,6 +145,7 @@ class ContentSyncService {
       previousVersion: cachedVersion,
       message: message,
       validation: validation,
+      checkedAt: checkedAt,
     );
   }
 
@@ -144,6 +154,7 @@ class ContentSyncService {
     bool hasActive,
     Object error, {
     required bool remoteReached,
+    required DateTime checkedAt,
   }) {
     if (hasActive) {
       return ContentSyncResult(
@@ -152,12 +163,14 @@ class ContentSyncService {
         previousVersion: cachedVersion,
         message: 'Remote ${remoteReached ? 'failed' : 'unreachable'}; '
             'using cached content ($error).',
+        checkedAt: checkedAt,
       );
     }
     return ContentSyncResult(
       status: ContentSyncStatus.failed,
       message: 'Remote ${remoteReached ? 'failed' : 'unreachable'} and no '
           'cached content ($error).',
+      checkedAt: checkedAt,
     );
   }
 }

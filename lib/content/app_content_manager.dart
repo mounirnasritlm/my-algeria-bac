@@ -41,6 +41,10 @@ class AppContentManager {
   /// Downloads and verifies the latest remote bundle, then activates it.
   Future<ContentSyncResult> syncNow() => _syncService.sync();
 
+  /// Removes all cached releases. The app falls back to the bundled assets
+  /// until the next successful sync.
+  Future<void> clearCache() => _cache.clear();
+
   /// The repository the app should read from right now.
   ///
   /// Returns a cache-backed repository when an active release exists,

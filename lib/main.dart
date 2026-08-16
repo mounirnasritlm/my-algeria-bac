@@ -6,6 +6,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'app/app_controller.dart';
 import 'app/app_scope.dart';
 import 'app/app_theme.dart';
+import 'config/app_constants.dart';
 import 'config/feature_flags.dart';
 import 'content/app_content_manager.dart';
 import 'content/content_coordinator.dart';
@@ -94,7 +95,7 @@ class _StudyAppState extends State<StudyApp> {
         return AppScope(
           controller: _appController,
           child: MaterialApp(
-            title: 'MY Algeria BAC',
+            title: AppConstants.appDisplayName,
             debugShowCheckedModeBanner: false,
             theme: AppTheme.light,
             darkTheme: AppTheme.dark,

@@ -4,6 +4,31 @@ All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/). Dates use
 YYYY-MM-DD.
 
+## [0.2.1] - 2026-08-16
+
+### Added
+- Settings → Content page (`lib/screens/content_settings_page.dart`): shows the
+  active content version, source (bundled vs cached release), and last-checked
+  time; "Check for updates" runs a content sync; "Clear cached content" removes
+  the on-device release and falls back to the bundled version. Localized
+  ar/fr/en and reachable from Profile → Settings.
+- Content sync results now carry a `checkedAt` timestamp (surfaced as "Last
+  checked"); `AppContentManager.clearCache()` added.
+- Developer tools upgraded from read-only diagnostics to interactive actions:
+  force content sync, reload content, clear content cache, grant 100 XP, record
+  a streak activity, unlock the "First Step" achievement, complete the first
+  lesson, and reset all progress (with confirmation). All still gated behind
+  `FeatureFlags.developerTools` (off by default).
+- `ProgressDatabase.resetUserData()`: clears lessons/attempts/XP/streaks/
+  achievements while keeping the schema and app settings.
+- Centralized brand name: `AppConstants.appDisplayName` (used by
+  `MaterialApp.title`); the Android launcher label stays in the manifest.
+- Tests: content-settings-page suite and dev-tools action tests (217 total).
+
+### Changed
+- `ContentReleaseCache` recursive deletes retry briefly on transient file
+  locks (fixes a Windows `errno = 32` flake when clearing the cache).
+
 ## [0.2.0] - 2026-08-16
 
 ### Added

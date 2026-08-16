@@ -79,7 +79,10 @@ class _MainShellState extends State<MainShell> {
           SubjectsPage(contentRepository: _repository),
           PracticePage(contentRepository: _repository),
           ProgressPage(contentRepository: _repository),
-          ProfilePage(appController: widget.appController),
+          ProfilePage(
+            appController: widget.appController,
+            contentCoordinator: widget.contentCoordinator,
+          ),
         ],
       ),
       bottomNavigationBar: NavigationBar(

@@ -130,3 +130,27 @@ entries; never rewrite history without a note.
 - STATUS: Accepted.
 - SOURCE: Stabilization review checklist (design system, settings, flags,
   architecture, DB tests, deps/secrets, repos+CI, app name).
+
+## D-011 - Stabilization V1.5: content settings UI, interactive dev tools
+
+- DECISION: (1) Add a user-facing Settings - Content page
+  (lib/screens/content_settings_page.dart) fed by ContentCoordinator: active
+  content version, source (bundled vs cached release), last-checked time, a
+  "Check for updates" action that runs ContentCoordinator.syncNow(), and
+  "Clear cached content" that calls AppContentManager.clearCache() then
+  re-initializes (falls back to bundled content). (2) Upgrade the developer
+  tools panel (lib/dev/developer_menu.dart) from read-only diagnostics to
+  interactive actions: force content sync, reload content, clear content
+  cache, grant 100 XP, record a streak activity, unlock the "First Step"
+  achievement, complete the first lesson, and reset progress (confirmed).
+  (3) Add ContentSyncResult.checkedAt so "last checked" is real data; add
+  ProgressDatabase.resetUserData() to clear user tables while keeping schema
+  and app settings; add AppContentManager.clearCache(). (4) Centralize the
+  brand name in AppConstants.appDisplayName (used by MaterialApp.title); the
+  Android launcher label remains in the manifest because it cannot reference
+  Dart values.
+- REASON: Completes Stabilization V1 items that were read-only or absent
+  (dev-tools actions, Settings - Content, single source for the brand name),
+  and gives Windows-proof cache clearing for the new clear-cache actions.
+- STATUS: Accepted.
+- SOURCE: Pre-GitHub audit of App_Refactoring_Advice (items 12, 21, 24).

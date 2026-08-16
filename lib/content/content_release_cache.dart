@@ -173,19 +173,35 @@ class ContentReleaseCache {
     }
   }
 
+  /// Deletes a directory tree, retrying briefly on transient failures
+  /// (Windows can briefly hold file locks right after writes).
+  Future<void> _deleteDirectory(Directory directory) async {
+    for (var attempt = 0; attempt < 5; attempt++) {
+      try {
+        if (await directory.exists()) {
+          await directory.delete(recursive: true);
+        }
+        return;
+      } on FileSystemException {
+        if (attempt == 4) {
+          rethrow;
+        }
+        await Future<void>.delayed(
+          Duration(milliseconds: 50 * (attempt + 1)),
+        );
+      }
+    }
+  }
+
   /// Removes all staged (not yet activated) releases.
   Future<void> clearStaging() async {
     final staging = Directory(p.join(await _rootPath(), 'staging'));
-    if (await staging.exists()) {
-      await staging.delete(recursive: true);
-    }
+    await _deleteDirectory(staging);
   }
 
   /// Deletes the whole cache root.
   Future<void> clear() async {
     final root = Directory(await _rootPath());
-    if (await root.exists()) {
-      await root.delete(recursive: true);
-    }
+    await _deleteDirectory(root);
   }
 }

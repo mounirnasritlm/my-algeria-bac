@@ -2,17 +2,23 @@ import 'package:flutter/material.dart';
 
 import '../app/app_controller.dart';
 import '../config/feature_flags.dart';
+import '../content/content_coordinator.dart';
 import '../dev/developer_menu.dart';
 import '../l10n/app_strings.dart';
 import '../models/app_settings.dart';
 import '../models/student_profile.dart';
+import 'content_settings_page.dart';
 import 'study_settings_page.dart';
 import 'student_profile_page.dart';
 
 class ProfilePage extends StatelessWidget {
-  const ProfilePage({super.key, this.appController});
+  const ProfilePage({super.key, this.appController, this.contentCoordinator});
 
   final AppController? appController;
+
+  /// Optional content pipeline coordinator, surfaced as a "Content" settings
+  /// entry when present.
+  final ContentCoordinator? contentCoordinator;
 
   @override
   Widget build(BuildContext context) {
@@ -82,6 +88,22 @@ class ProfilePage extends StatelessWidget {
                       );
                     },
                   ),
+                if (contentCoordinator != null)
+                  ListTile(
+                    leading: const Icon(Icons.cloud_download_outlined),
+                    title: Text(AppStrings.t(context, 'content_title')),
+                    subtitle: Text(AppStrings.t(context, 'content_subtitle')),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => ContentSettingsPage(
+                            coordinator: contentCoordinator!,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
           ),
@@ -137,7 +159,8 @@ class ProfilePage extends StatelessWidget {
                 title: const Text('Developer tools'),
                 subtitle: const Text('Runtime state and diagnostics.'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => showDeveloperMenu(context, appController),
+                onTap: () =>
+                    showDeveloperMenu(context, appController, contentCoordinator),
               ),
             ),
           ],

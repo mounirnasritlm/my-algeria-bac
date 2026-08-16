@@ -31,6 +31,7 @@ class ContentSyncResult {
     this.previousVersion,
     this.message,
     this.validation,
+    this.checkedAt,
   });
 
   final ContentSyncStatus status;
@@ -45,4 +46,7 @@ class ContentSyncResult {
 
   /// Set when the remote bundle failed validation.
   final ContentReleaseValidationResult? validation;
+
+  /// When this sync run finished, for surfacing "last checked" in the UI.
+  final DateTime? checkedAt;
 }

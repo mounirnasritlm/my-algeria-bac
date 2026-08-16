@@ -28,6 +28,26 @@ class ProgressDatabase {
     instance._database = null;
   }
 
+  /// Deletes all user-progress rows (lessons, attempts, XP, streaks,
+  /// achievements, exam sessions) while keeping the schema and app settings
+  /// (theme, preferences) intact. Used by the developer tools.
+  Future<void> resetUserData() async {
+    final db = await database;
+    for (final table in const [
+      'lessons',
+      'question_attempts',
+      'concept_attempts',
+      'exam_attempts',
+      'xp_events',
+      'exam_sessions',
+      'exam_session_answers',
+      'streak_activities',
+      'achievements',
+    ]) {
+      await db.delete(table);
+    }
+  }
+
   Future<Database> _open() async {
     final path = join(await getDatabasesPath(), _databaseName);
 
