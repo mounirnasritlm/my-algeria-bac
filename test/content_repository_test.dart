@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:my_algeria_bac/data/json_content_repository.dart';
+import 'package:my_algeria_bac/models/content_source.dart';
 import 'package:my_algeria_bac/models/question.dart';
 
 import 'helpers/demo_content_assets.dart';
@@ -24,39 +25,60 @@ void main() {
       final subjects = await repository.getSubjects();
 
       expect(subjects, hasLength(2));
-      expect(subjects.first.id, 'math');
-      expect(subjects.first.name, 'Mathematics');
+      expect(subjects.first.id, 'mathematics');
+      expect(subjects.first.nameForLanguage('en'), 'Mathematics');
+      expect(subjects.first.nameForLanguage('fr'), 'Mathématiques');
     });
 
     test('getSubject returns the subject or null', () async {
-      expect((await repository.getSubject('math'))?.id, 'math');
+      expect((await repository.getSubject('mathematics'))?.id, 'mathematics');
       expect(await repository.getSubject('does_not_exist'), isNull);
     });
 
-    test('getLessonsForSubject filters by subject', () async {
-      final lessons = await repository.getLessonsForSubject('math');
+    test('getChaptersForSubject filters by subject', () async {
+      final chapters = await repository.getChaptersForSubject('mathematics');
 
-      expect(lessons.map((lesson) => lesson.id),
+      expect(chapters.map((chapter) => chapter.id),
           containsAll(['math_functions', 'math_derivatives']));
       expect(
-        await repository.getLessonsForSubject('physics'),
+        await repository.getChaptersForSubject('physics'),
         hasLength(1),
       );
     });
 
-    test('getLesson returns the lesson or null', () async {
-      final lesson = await repository.getLesson('math_functions');
+    test('getChapter returns the chapter or null', () async {
+      final chapter = await repository.getChapter('math_functions');
 
-      expect(lesson?.subjectId, 'math');
+      expect(chapter?.subjectId, 'mathematics');
+      expect(await repository.getChapter('nope'), isNull);
+    });
+
+    test('getLessonsForChapter filters by chapter', () async {
+      final lessons = await repository.getLessonsForChapter('math_functions');
+
+      expect(lessons.map((lesson) => lesson.id),
+          containsAll(['math_function_definition', 'math_function_domain']));
+      expect(
+        await repository.getLessonsForChapter('does_not_exist'),
+        isEmpty,
+      );
+    });
+
+    test('getLesson returns the lesson or null', () async {
+      final lesson = await repository.getLesson('math_function_definition');
+
+      expect(lesson?.subjectId, 'mathematics');
+      expect(lesson?.chapterId, 'math_functions');
       expect(lesson?.estimatedMinutes, 15);
       expect(await repository.getLesson('nope'), isNull);
     });
 
     test('getConceptsForLesson filters by lesson', () async {
-      final concepts = await repository.getConceptsForLesson('math_functions');
+      final concepts =
+          await repository.getConceptsForLesson('math_function_definition');
 
       expect(concepts.map((concept) => concept.id),
-          containsAll(['function_definition', 'domain']));
+          containsAll(['function_definition']));
     });
 
     test('getConcept returns the concept or null', () async {
@@ -68,9 +90,9 @@ void main() {
 
     test('getQuestionsForLesson filters by lesson', () async {
       final questions =
-          await repository.getQuestionsForLesson('math_functions');
+          await repository.getQuestionsForLesson('math_function_definition');
 
-      expect(questions, hasLength(4));
+      expect(questions, hasLength(2));
       expect(questions.first.correctIndex, 0);
     });
 
@@ -86,7 +108,7 @@ void main() {
       final exams = await repository.getExams();
 
       expect(exams, hasLength(1));
-      expect(exams.first.subjectId, 'math');
+      expect(exams.first.subjectId, 'mathematics');
       expect(exams.first.sections, hasLength(2));
     });
 
@@ -116,16 +138,26 @@ void main() {
       );
     });
 
-    test('getResourcesForSubject filters by subject ids', () async {
-      final resources = await repository.getResourcesForSubject('math');
+    test('getSources returns the demo source', () async {
+      final sources = await repository.getSources();
 
-      expect(resources.map((resource) => resource.id), ['r_math_001']);
-      expect(await repository.getResourcesForSubject('physics'), isEmpty);
+      expect(sources.map((source) => source.id), ['demo_source']);
+      expect((await repository.getSource('demo_source'))?.type,
+          ContentSourceType.demo);
+      expect(await repository.getSource('missing_source'), isNull);
     });
 
-    test('loads teachers and videos', () async {
+    test('loads teachers, videos and worksheets', () async {
       expect(await repository.getTeachers(), isEmpty);
-      expect(await repository.getVideos(), isEmpty);
+      expect(await repository.getVideosForLesson('math_function_definition'),
+          isEmpty);
+      expect(
+          await repository.getWorksheetsForLesson('math_function_definition'),
+          isEmpty);
+    });
+
+    test('getExamSolution returns null when no solution exists', () async {
+      expect(await repository.getExamSolution('e_math_001'), isNull);
     });
   });
 
@@ -133,7 +165,7 @@ void main() {
     test('parses a multiple-choice question', () {
       final json = {
         'id': 'q1',
-        'subjectId': 'math',
+        'subjectId': 'mathematics',
         'lessonId': 'lesson1',
         'conceptId': 'concept1',
         'type': 'multipleChoice',
@@ -142,7 +174,7 @@ void main() {
         'correctIndex': 0,
         'explanation': 'f denotes a function.',
         'difficulty': 2,
-        'source': {'sourceType': 'demo_content', 'verified': false},
+        'sourceId': 'demo_source',
       };
 
       final question = Question.fromJson(json);
@@ -150,18 +182,17 @@ void main() {
       expect(question.id, 'q1');
       expect(question.type, QuestionType.multipleChoice);
       expect(question.correctIndex, 0);
-      expect(question.source.sourceType, 'demo_content');
-      expect(question.source.verified, isFalse);
+      expect(question.sourceId, 'demo_source');
     });
 
     test('parses an unknown question type with defaults', () {
       final json = {
         'id': 'q2',
-        'subjectId': 'math',
+        'subjectId': 'mathematics',
         'lessonId': 'lesson1',
         'conceptId': 'concept1',
         'prompt': 'Type?',
-        'source': {'sourceType': 'demo_content'},
+        'sourceId': 'demo_source',
       };
 
       final question = Question.fromJson(json);

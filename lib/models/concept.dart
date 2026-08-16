@@ -1,5 +1,3 @@
-import 'source.dart';
-
 class Concept {
   final String id;
 
@@ -9,14 +7,14 @@ class Concept {
 
   final String lessonId;
 
-  final ContentSource source;
+  final String sourceId;
 
   const Concept({
     required this.id,
     required this.name,
     required this.summary,
     required this.lessonId,
-    required this.source,
+    required this.sourceId,
   });
 
   factory Concept.fromJson(Map<String, dynamic> json) {
@@ -25,7 +23,7 @@ class Concept {
       name: json['name'] as String,
       summary: json['summary'] as String? ?? '',
       lessonId: json['lessonId'] as String,
-      source: ContentSource.fromJson(json['source'] as Map<String, dynamic>),
+      sourceId: json['sourceId'] as String,
     );
   }
 }

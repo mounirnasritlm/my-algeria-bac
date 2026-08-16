@@ -1,16 +1,31 @@
 [
   {
-    "id": "math",
-    "name": "Mathematics",
-    "language": "fr",
+    "id": "mathematics",
+    "names": {
+      "ar": "الرياضيات",
+      "fr": "Mathématiques",
+      "en": "Mathematics"
+    },
     "icon": "∑",
-    "lessonIds": ["math_functions", "math_derivatives"]
+    "chapterIds": [
+      "math_functions",
+      "math_derivatives"
+    ],
+    "lessonIds": [],
+    "order": 1
   },
   {
     "id": "physics",
-    "name": "Physics",
-    "language": "fr",
+    "names": {
+      "ar": "العلوم الفيزيائية",
+      "fr": "Physique",
+      "en": "Physics"
+    },
     "icon": "⚡",
-    "lessonIds": ["physics_motion"]
+    "chapterIds": [
+      "physics_motion"
+    ],
+    "lessonIds": [],
+    "order": 2
   }
 ]

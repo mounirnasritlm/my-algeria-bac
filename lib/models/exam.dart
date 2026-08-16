@@ -1,5 +1,3 @@
-import 'source.dart';
-
 class Exam {
   final String id;
 
@@ -15,7 +13,7 @@ class Exam {
 
   final String? scoringInfo;
 
-  final ContentSource source;
+  final String sourceId;
 
   const Exam({
     required this.id,
@@ -25,7 +23,7 @@ class Exam {
     required this.durationMinutes,
     required this.sections,
     this.scoringInfo,
-    required this.source,
+    required this.sourceId,
   });
 
   factory Exam.fromJson(Map<String, dynamic> json) {
@@ -42,7 +40,7 @@ class Exam {
       durationMinutes: (json['durationMinutes'] as num).toInt(),
       sections: sections,
       scoringInfo: json['scoringInfo'] as String?,
-      source: ContentSource.fromJson(json['source'] as Map<String, dynamic>),
+      sourceId: json['sourceId'] as String,
     );
   }
 }

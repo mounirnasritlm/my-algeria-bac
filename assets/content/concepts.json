@@ -3,28 +3,28 @@
     "id": "function_definition",
     "name": "Function definition",
     "summary": "A relation that maps each input to exactly one output.",
-    "lessonId": "math_functions",
-    "source": { "sourceType": "demo_content", "verified": false }
+    "lessonId": "math_function_definition",
+    "sourceId": "demo_source"
   },
   {
-    "id": "domain",
-    "name": "Domain",
-    "summary": "The set of all valid input values of a function.",
-    "lessonId": "math_functions",
-    "source": { "sourceType": "demo_content", "verified": false }
+    "id": "function_domain",
+    "name": "Function domain",
+    "summary": "The set of inputs for which a function is defined.",
+    "lessonId": "math_function_domain",
+    "sourceId": "demo_source"
   },
   {
     "id": "derivative_definition",
-    "name": "Derivative",
-    "summary": "The rate of change of a function at a point.",
-    "lessonId": "math_derivatives",
-    "source": { "sourceType": "demo_content", "verified": false }
+    "name": "Derivative definition",
+    "summary": "The instantaneous rate of change of a function.",
+    "lessonId": "math_derivative_definition",
+    "sourceId": "demo_source"
   },
   {
     "id": "motion_basics",
-    "name": "Motion",
-    "summary": "The change of position of an object over time.",
-    "lessonId": "physics_motion",
-    "source": { "sourceType": "demo_content", "verified": false }
+    "name": "Motion basics",
+    "summary": "Position, velocity and acceleration.",
+    "lessonId": "physics_motion_basics",
+    "sourceId": "demo_source"
   }
 ]

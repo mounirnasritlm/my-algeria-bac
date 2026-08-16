@@ -1,5 +1,3 @@
-import 'source.dart';
-
 enum QuestionType { multipleChoice, trueFalse, numeric }
 
 class Question {
@@ -25,7 +23,7 @@ class Question {
 
   final int difficulty;
 
-  final ContentSource source;
+  final String sourceId;
 
   final String validationStatus;
 
@@ -41,7 +39,7 @@ class Question {
     this.numericAnswer,
     this.explanation = '',
     this.difficulty = 1,
-    required this.source,
+    required this.sourceId,
     this.validationStatus = 'CONTENT_REQUIRES_VERIFICATION',
   });
 
@@ -58,7 +56,7 @@ class Question {
       numericAnswer: (json['numericAnswer'] as num?)?.toDouble(),
       explanation: json['explanation'] as String? ?? '',
       difficulty: (json['difficulty'] as num?)?.toInt() ?? 1,
-      source: ContentSource.fromJson(json['source'] as Map<String, dynamic>),
+      sourceId: json['sourceId'] as String,
       validationStatus:
           json['validationStatus'] as String? ?? 'CONTENT_REQUIRES_VERIFICATION',
     );

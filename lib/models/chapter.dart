@@ -1,21 +1,18 @@
-class Subject {
+class Chapter {
   final String id;
 
+  final String subjectId;
+
   final Map<String, String> names;
-
-  final String icon;
-
-  final List<String> chapterIds;
 
   final List<String> lessonIds;
 
   final int order;
 
-  const Subject({
+  const Chapter({
     required this.id,
+    required this.subjectId,
     required this.names,
-    required this.icon,
-    required this.chapterIds,
     required this.lessonIds,
     required this.order,
   });
@@ -28,16 +25,15 @@ class Subject {
         id;
   }
 
-  factory Subject.fromJson(Map<String, dynamic> json) {
+  factory Chapter.fromJson(Map<String, dynamic> json) {
     final namesRaw = Map<String, dynamic>.from(json['names'] as Map);
 
-    return Subject(
+    return Chapter(
       id: json['id'] as String,
+      subjectId: json['subjectId'] as String,
       names: namesRaw.map(
         (key, value) => MapEntry(key, value.toString()),
       ),
-      icon: json['icon'] as String? ?? '📚',
-      chapterIds: List<String>.from(json['chapterIds'] ?? const []),
       lessonIds: List<String>.from(json['lessonIds'] ?? const []),
       order: (json['order'] as num?)?.toInt() ?? 0,
     );
