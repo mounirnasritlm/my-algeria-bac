@@ -35,11 +35,11 @@ void main() {
       availableMinutes: 60,
       tasks: [
         const StudyTask(
-          id: 'math_functions_function_definition',
+          id: 'math_function_definition_function_definition',
           type: StudyTaskType.weakPoint,
           title: 'Fix Function definition',
           description: 'Master the Function definition concept.',
-          lessonId: 'math_functions',
+          lessonId: 'math_function_definition',
           conceptId: 'function_definition',
           estimatedMinutes: 15,
           priority: 100,
@@ -100,7 +100,7 @@ void main() {
     await tester.tap(find.text('Fix Function definition'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Mathematics'), findsOneWidget);
+    expect(find.text('الرياضيات'), findsOneWidget);
   });
 
   testWidgets('tune button opens the preferences screen', (tester) async {

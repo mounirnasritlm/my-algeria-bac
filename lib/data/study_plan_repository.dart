@@ -1,3 +1,6 @@
+import '../config/app_language.dart';
+import '../l10n/engine_strings.dart';
+import '../models/lesson.dart';
 import '../models/study_plan.dart';
 import '../models/study_preferences.dart';
 import '../models/user_progress.dart';
@@ -15,12 +18,15 @@ class StudyPlanRepository {
   final ContentRepository contentRepository;
   final ProgressRepository progressRepository;
   final StudyPreferencesRepository preferencesRepository;
+  final String languageCode;
 
   StudyPlanRepository({
     required this.contentRepository,
     ProgressRepository? progressRepository,
     StudyPreferencesRepository? preferencesRepository,
-  })  : progressRepository = progressRepository ?? ProgressRepository(),
+    String? languageCode,
+  })  : languageCode = languageCode ?? appLanguage,
+        progressRepository = progressRepository ?? ProgressRepository(),
         preferencesRepository =
             preferencesRepository ?? StudyPreferencesRepository();
 
@@ -56,8 +62,15 @@ class StudyPlanRepository {
           StudyTask(
             id: 'weak_${weakPoint.conceptId}',
             type: StudyTaskType.weakPoint,
-            title: 'Fix ${concept?.name ?? weakPoint.conceptId}',
-            description: _weakPointDescription(weakPoint),
+            title: fixConceptTask(
+              languageCode,
+              concept?.name ?? weakPoint.conceptId,
+            ),
+            description: weakPointDescription(
+              languageCode,
+              weakPoint.priority,
+              (weakPoint.mastery * 100).round(),
+            ),
             lessonId: weakPoint.lessonId,
             conceptId: weakPoint.conceptId,
             estimatedMinutes: minutes,
@@ -82,9 +95,7 @@ class StudyPlanRepository {
           continue;
         }
 
-        final lessons = await contentRepository.getLessonsForSubject(
-          subject.id,
-        );
+        final lessons = await _lessonsForSubject(subject.id);
 
         for (final lesson in lessons) {
           if (remainingMinutes < 10) {
@@ -102,8 +113,8 @@ class StudyPlanRepository {
             continue;
           }
 
-          final baseMinutes = lesson.estimatedMinutes.clamp(10, 25);
-          final minutes = remainingMinutes < baseMinutes
+          final int baseMinutes = lesson.estimatedMinutes.clamp(10, 25).toInt();
+          final int minutes = remainingMinutes < baseMinutes
               ? remainingMinutes
               : baseMinutes;
 
@@ -111,8 +122,11 @@ class StudyPlanRepository {
             StudyTask(
               id: 'lesson_${lesson.id}',
               type: StudyTaskType.lesson,
-              title: 'Study ${lesson.title}',
-              description: lesson.description,
+              title: studyLessonTask(
+                languageCode,
+                lesson.titleForLanguage(languageCode),
+              ),
+              description: lesson.descriptionForLanguage(languageCode),
               lessonId: lesson.id,
               conceptId: null,
               estimatedMinutes: minutes,
@@ -131,12 +145,11 @@ class StudyPlanRepository {
     // ------------------------------------------------
     if (preferences.includePractice && remainingMinutes >= 10) {
       tasks.add(
-        const StudyTask(
+        StudyTask(
           id: 'daily_practice',
           type: StudyTaskType.practice,
-          title: 'Quick Practice',
-          description:
-              'Answer a focused set of questions from today\'s topics.',
+          title: quickPracticeTask(languageCode),
+          description: quickPracticeDescription(languageCode),
           lessonId: null,
           conceptId: null,
           estimatedMinutes: 10,
@@ -149,13 +162,11 @@ class StudyPlanRepository {
     // Avoid creating an empty plan.
     if (tasks.isEmpty) {
       tasks.add(
-        const StudyTask(
+        StudyTask(
           id: 'starter_practice',
           type: StudyTaskType.practice,
-          title: 'Start a practice session',
-          description:
-              'Begin with a short practice session to generate useful '
-              'learning data.',
+          title: starterPracticeTask(languageCode),
+          description: starterPracticeDescription(languageCode),
           lessonId: null,
           conceptId: null,
           estimatedMinutes: 10,
@@ -194,12 +205,24 @@ class StudyPlanRepository {
     }
   }
 
+  /// All lessons of a subject, flattened from its chapters in order.
+  Future<List<Lesson>> _lessonsForSubject(String subjectId) async {
+    final chapters = await contentRepository.getChaptersForSubject(subjectId);
+    final lessons = <Lesson>[];
+    for (final chapter in chapters) {
+      lessons.addAll(
+        await contentRepository.getLessonsForChapter(chapter.id),
+      );
+    }
+    return lessons;
+  }
+
   Future<Map<String, String>> _lessonSubjectMap() async {
     final map = <String, String>{};
 
     final subjects = await contentRepository.getSubjects();
     for (final subject in subjects) {
-      final lessons = await contentRepository.getLessonsForSubject(subject.id);
+      final lessons = await _lessonsForSubject(subject.id);
       for (final lesson in lessons) {
         map[lesson.id] = subject.id;
       }
@@ -268,21 +291,6 @@ class StudyPlanRepository {
         return 70;
       case WeakPointPriority.low:
         return 50;
-    }
-  }
-
-  String _weakPointDescription(WeakPoint weakPoint) {
-    final percentage = (weakPoint.mastery * 100).round();
-
-    switch (weakPoint.priority) {
-      case WeakPointPriority.critical:
-        return '$percentage% mastery. This should be your top priority.';
-      case WeakPointPriority.high:
-        return '$percentage% mastery. More targeted practice is needed.';
-      case WeakPointPriority.medium:
-        return '$percentage% mastery. Keep developing this concept.';
-      case WeakPointPriority.low:
-        return '$percentage% mastery. A quick review will keep it fresh.';
     }
   }
 }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
 import '../data/content_repository.dart';
+import '../l10n/app_strings.dart';
+import '../models/chapter.dart';
 import '../models/lesson.dart';
 import '../models/subject.dart';
 import 'lesson_page.dart';
@@ -19,15 +22,24 @@ class SubjectPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final future = () async {
       final subject = await contentRepository.getSubject(subjectId);
-      final lessons = await contentRepository.getLessonsForSubject(subjectId);
-      return (subject: subject, lessons: lessons);
+      final chapters = await contentRepository.getChaptersForSubject(subjectId);
+      final lessons = <Lesson>[
+        for (final chapter in chapters)
+          ...await contentRepository.getLessonsForChapter(chapter.id),
+      ];
+      return (subject: subject, chapters: chapters, lessons: lessons);
     }();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(subjectId),
       ),
-      body: FutureBuilder<({Subject? subject, List<Lesson> lessons})>(
+      body: FutureBuilder<
+          ({
+            Subject? subject,
+            List<Chapter> chapters,
+            List<Lesson> lessons,
+          })>(
         future: future,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
@@ -35,48 +47,61 @@ class SubjectPage extends StatelessWidget {
           }
 
           final subject = snapshot.data?.subject;
+          final chapters = snapshot.data?.chapters ?? const <Chapter>[];
           final lessons = snapshot.data?.lessons ?? const <Lesson>[];
 
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                subject?.name ?? subjectId,
+                 subject?.nameForLanguage(appLanguageOf(context)) ?? subjectId,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
               ),
               const SizedBox(height: 6),
               Text(
-                'Learning path',
+                AppStrings.t(context, 'learning_path'),
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
               ),
               const SizedBox(height: 8),
               Text(
-                'Complete the lessons in order and practice what you learn.',
+                AppStrings.t(context, 'learning_path_subtitle'),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Colors.grey.shade600,
                     ),
               ),
               const SizedBox(height: 20),
 
-              for (int index = 0; index < lessons.length; index++)
-                _LessonCard(
-                  lesson: lessons[index],
-                  number: index + 1,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => LessonPage(
-                          contentRepository: contentRepository,
-                          lessonId: lessons[index].id,
+              for (final chapter in chapters) ...[
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: Text(
+                     chapter.nameForLanguage(appLanguageOf(context)),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
                         ),
-                      ),
-                    );
-                  },
+                  ),
                 ),
+                for (final lesson in lessons.where(
+                  (lesson) => lesson.chapterId == chapter.id,
+                ))
+                  _LessonCard(
+                    lesson: lesson,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => LessonPage(
+                            contentRepository: contentRepository,
+                            lessonId: lesson.id,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+              ],
             ],
           );
         },
@@ -87,12 +112,10 @@ class SubjectPage extends StatelessWidget {
 
 class _LessonCard extends StatelessWidget {
   final Lesson lesson;
-  final int number;
   final VoidCallback onTap;
 
   const _LessonCard({
     required this.lesson,
-    required this.number,
     required this.onTap,
   });
 
@@ -118,13 +141,9 @@ class _LessonCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  '$number',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 20,
-                  ),
+                child: Icon(
+                  Icons.menu_book_outlined,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(width: 14),
@@ -133,7 +152,7 @@ class _LessonCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      lesson.title,
+                       lesson.titleForLanguage(appLanguageOf(context)),
                       style: const TextStyle(
                         fontSize: 17,
                         fontWeight: FontWeight.w900,
@@ -141,7 +160,7 @@ class _LessonCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      lesson.description,
+                       lesson.descriptionForLanguage(appLanguageOf(context)),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

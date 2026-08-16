@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
 import '../data/campaign_engine.dart';
 import '../data/content_repository.dart';
 import '../data/progress_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/bac_campaign.dart';
 import '../models/exam.dart';
 import 'exam_session_page.dart';
@@ -42,6 +44,7 @@ class _MissionPageState extends State<MissionPage> {
 
   Future<void> _load() async {
     final today = DateTime.now();
+    final languageCode = appLanguageWithoutListening(context);
 
     final mastery = await _progress.getAllConceptMastery();
     final activity = await _progress.getDailyActivity(today);
@@ -50,6 +53,7 @@ class _MissionPageState extends State<MissionPage> {
       today: today,
       mastery: mastery,
       activity: activity,
+      languageCode: languageCode,
     );
 
     // Reward once per day, guarded by the completion date.
@@ -105,11 +109,11 @@ class _MissionPageState extends State<MissionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mission du Jour')),
+      appBar: AppBar(title: Text(AppStrings.t(context, 'mission_du_jour'))),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _mission == null
-              ? const Center(child: Text('No mission available.'))
+              ? Center(child: Text(AppStrings.t(context, 'no_mission')))
               : RefreshIndicator(
                   onRefresh: _load,
                   child: ListView(
@@ -146,10 +150,10 @@ class _MissionPageState extends State<MissionPage> {
             children: [
               Icon(_icon(mission.type), color: Colors.white, size: 26),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'MISSION DU JOUR',
-                  style: TextStyle(
+                  AppStrings.t(context, 'mission_du_jour_badge'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
                     letterSpacing: 1.2,
@@ -165,9 +169,9 @@ class _MissionPageState extends State<MissionPage> {
                   color: Colors.white.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'TODAY',
-                  style: TextStyle(
+                child: Text(
+                  AppStrings.t(context, 'today_badge'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
                     fontSize: 11,
@@ -212,10 +216,11 @@ class _MissionPageState extends State<MissionPage> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    "Today's progress",
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
+                    AppStrings.t(context, 'todays_progress'),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w900, fontSize: 17),
                   ),
                 ),
                 Text(
@@ -243,13 +248,13 @@ class _MissionPageState extends State<MissionPage> {
                 ),
                 const Spacer(),
                 if (mission.isComplete)
-                  const Row(
+                  Row(
                     children: [
-                      Icon(Icons.check_circle, color: Colors.green),
-                      SizedBox(width: 6),
+                      const Icon(Icons.check_circle, color: Colors.green),
+                      const SizedBox(width: 6),
                       Text(
-                        'Completed',
-                        style: TextStyle(
+                        AppStrings.t(context, 'completed'),
+                        style: const TextStyle(
                           color: Colors.green,
                           fontWeight: FontWeight.w800,
                         ),
@@ -274,21 +279,21 @@ class _MissionPageState extends State<MissionPage> {
         ),
         child: Column(
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.emoji_events, color: Colors.green),
-                SizedBox(width: 12),
+                const Icon(Icons.emoji_events, color: Colors.green),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Mission completed! XP awarded.',
-                    style: TextStyle(fontWeight: FontWeight.w800),
+                    AppStrings.t(context, 'mission_completed_xp'),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 12),
             Text(
-              'Come back tomorrow for a new challenge.',
+              AppStrings.t(context, 'come_back_tomorrow'),
               style: TextStyle(color: Colors.grey.shade600),
             ),
           ],
@@ -301,20 +306,20 @@ class _MissionPageState extends State<MissionPage> {
       height: 54,
       child: FilledButton(
         onPressed: _launch,
-        child: Text(_buttonLabel(mission.type)),
+        child: Text(_buttonLabel(context, mission.type)),
       ),
     );
   }
 
-  String _buttonLabel(DailyMissionType type) {
+  String _buttonLabel(BuildContext context, DailyMissionType type) {
     switch (type) {
       case DailyMissionType.rescue:
-        return 'Fix this weakness';
+        return AppStrings.t(context, 'fix_this_weakness');
       case DailyMissionType.bacExercise:
       case DailyMissionType.bacChallenge:
-        return 'Start the exam';
+        return AppStrings.t(context, 'start_the_exam');
       default:
-        return 'Start practice';
+        return AppStrings.t(context, 'start_practice');
     }
   }
 

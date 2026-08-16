@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/study_preferences_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/study_preferences.dart';
 
 /// Let the student choose how much time they have and what the plan should
@@ -63,7 +64,7 @@ class _StudySettingsPageState extends State<StudySettingsPage> {
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Study preferences saved.')),
+      SnackBar(content: Text(AppStrings.t(context, 'study_preferences_saved'))),
     );
   }
 
@@ -76,13 +77,13 @@ class _StudySettingsPageState extends State<StudySettingsPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Study preferences')),
+      appBar: AppBar(title: Text(AppStrings.t(context, 'study_preferences'))),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Text(
-            'How much can you study each day?',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+          Text(
+            AppStrings.t(context, 'how_much_study'),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 8),
           Text(
@@ -108,11 +109,11 @@ class _StudySettingsPageState extends State<StudySettingsPage> {
           const SizedBox(height: 24),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Weak points',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            title: Text(
+              AppStrings.t(context, 'weak_points'),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            subtitle: const Text('Prioritize concepts you struggle with.'),
+            subtitle: Text(AppStrings.t(context, 'weak_points_subtitle')),
             value: weakPoints,
             onChanged: (value) {
               setState(() {
@@ -122,11 +123,11 @@ class _StudySettingsPageState extends State<StudySettingsPage> {
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Lessons',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            title: Text(
+              AppStrings.t(context, 'lessons'),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            subtitle: const Text('Include new and unfinished lessons.'),
+            subtitle: Text(AppStrings.t(context, 'lessons_subtitle')),
             value: lessons,
             onChanged: (value) {
               setState(() {
@@ -136,11 +137,11 @@ class _StudySettingsPageState extends State<StudySettingsPage> {
           ),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text(
-              'Practice',
-              style: TextStyle(fontWeight: FontWeight.w800),
+            title: Text(
+              AppStrings.t(context, 'practice'),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            subtitle: const Text('Include targeted questions.'),
+            subtitle: Text(AppStrings.t(context, 'practice_subtitle')),
             value: practice,
             onChanged: (value) {
               setState(() {
@@ -153,7 +154,7 @@ class _StudySettingsPageState extends State<StudySettingsPage> {
             height: 54,
             child: FilledButton(
               onPressed: _save,
-              child: const Text('Save'),
+              child: Text(AppStrings.t(context, 'save')),
             ),
           ),
         ],

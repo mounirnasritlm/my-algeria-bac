@@ -4,7 +4,6 @@ import 'package:my_algeria_bac/data/exam_scoring.dart';
 import 'package:my_algeria_bac/models/exam.dart';
 import 'package:my_algeria_bac/models/exam_session.dart';
 import 'package:my_algeria_bac/models/question.dart';
-import 'package:my_algeria_bac/models/source.dart';
 
 void main() {
   group('scoreOn20', () {
@@ -62,7 +61,7 @@ void main() {
         ),
       ],
       scoringInfo: 'UNKNOWN',
-      source: ContentSource.demoContent,
+      sourceId: 'demo_source',
     );
 
     Question question(String id, String conceptId, int correctIndex) {
@@ -74,7 +73,7 @@ void main() {
         prompt: 'Prompt $id',
         options: const ['a', 'b', 'c'],
         correctIndex: correctIndex,
-        source: ContentSource.demoContent,
+        sourceId: 'demo_source',
       );
     }
 
@@ -146,7 +145,7 @@ void main() {
           ExamSection(id: 's2', title: 'Exercise 2', questionIds: ['q3']),
         ],
         scoringInfo: 'UNKNOWN',
-        source: ContentSource.demoContent,
+        sourceId: 'demo_source',
       );
 
       final mixedSession = ExamSession(

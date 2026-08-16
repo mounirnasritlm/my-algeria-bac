@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../config/gamification_config.dart';
 import '../data/streak_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/streak.dart';
 
 /// 🔥 BAC Streak 2.0: earned by real, completed learning activity, not by
@@ -42,7 +43,7 @@ class _StreakPageState extends State<StreakPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('My Streak')),
+      appBar: AppBar(title: Text(AppStrings.t(context, 'my_streak'))),
       body: FutureBuilder<StreakState>(
         future: _stateFuture,
         builder: (context, snapshot) {
@@ -51,7 +52,9 @@ class _StreakPageState extends State<StreakPage> {
           }
 
           if (snapshot.hasError) {
-            return const Center(child: Text('Unable to load your streak.'));
+            return Center(
+              child: Text(AppStrings.t(context, 'unable_to_load_streak')),
+            );
           }
 
           final state = snapshot.data!;
@@ -105,9 +108,9 @@ class _HeroStreak extends StatelessWidget {
               fontWeight: FontWeight.w900,
             ),
           ),
-          const Text(
-            'DAY STREAK',
-            style: TextStyle(
+          Text(
+            AppStrings.t(context, 'day_streak'),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
               fontWeight: FontWeight.w900,
@@ -116,7 +119,8 @@ class _HeroStreak extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            'Longest: ${state.longestStreak} days',
+            AppStrings.t(context, 'longest_days',
+                args: [state.longestStreak]),
             style: const TextStyle(color: Colors.white70),
           ),
         ],
@@ -141,22 +145,23 @@ class _TodayCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Today',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+            Text(
+              AppStrings.t(context, 'today'),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 14),
             LinearProgressIndicator(value: progress, minHeight: 10),
             const SizedBox(height: 10),
             Text(
-              '${state.todayMinutes} / $goal minutes',
+              AppStrings.t(context, 'minutes_of_goal',
+                  args: [state.todayMinutes, goal]),
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             Text(
               state.completedToday
-                  ? '🔥 You kept your streak alive today.'
-                  : 'Complete at least $goal minutes of real study activity.',
+                  ? AppStrings.t(context, 'streak_alive_today')
+                  : AppStrings.t(context, 'streak_goal_hint', args: [goal]),
               style: TextStyle(color: Colors.grey.shade700),
             ),
           ],
@@ -178,11 +183,13 @@ class _MilestoneCard extends StatelessWidget {
     return Card(
       child: ListTile(
         leading: const Text('🏆', style: TextStyle(fontSize: 30)),
-        title: const Text(
-          'Next milestone',
-          style: TextStyle(fontWeight: FontWeight.w900),
+        title: Text(
+          AppStrings.t(context, 'next_milestone'),
+          style: const TextStyle(fontWeight: FontWeight.w900),
         ),
-        subtitle: Text('$next consecutive study days'),
+        subtitle: Text(
+          AppStrings.t(context, 'milestone_days', args: [next]),
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import '../l10n/engine_strings.dart';
 import '../models/bac_campaign.dart';
 import '../models/concept_mastery.dart';
 
@@ -58,24 +59,25 @@ DailyMission missionFor({
   required DateTime today,
   required List<ConceptMastery> mastery,
   required DailyActivity activity,
+  String languageCode = 'en',
 }) {
   final weekday = today.weekday; // 1 = Monday .. 7 = Sunday
 
   switch (weekday) {
     case DateTime.monday:
-      return _rescueMission(mastery, activity);
+      return _rescueMission(mastery, activity, languageCode);
     case DateTime.tuesday:
-      return _speedMission(activity);
+      return _speedMission(activity, languageCode);
     case DateTime.wednesday:
-      return _memoryMission(activity);
+      return _memoryMission(activity, languageCode);
     case DateTime.thursday:
-      return _bacExerciseMission(activity);
+      return _bacExerciseMission(activity, languageCode);
     case DateTime.friday:
-      return _precisionMission(activity);
+      return _precisionMission(activity, languageCode);
     case DateTime.saturday:
-      return _bacChallengeMission(activity);
+      return _bacChallengeMission(activity, languageCode);
     default:
-      return _foundationMission(activity);
+      return _foundationMission(activity, languageCode);
   }
 }
 
@@ -182,21 +184,26 @@ StreakInfo streakFor({
 DailyMission _rescueMission(
   List<ConceptMastery> mastery,
   DailyActivity activity,
+  String languageCode,
 ) {
   const target = 5;
   final weakest = weakestConcept(mastery);
 
   if (weakest == null) {
-    return _foundationMission(activity);
+    return _foundationMission(activity, languageCode);
   }
 
   final progress = activity.attemptsOnConcept(weakest.conceptId);
 
   return DailyMission(
     type: DailyMissionType.rescue,
-    title: 'Rescue mission',
-    description: 'Answer 5 questions on your weakest concept: '
-        '${weakest.conceptId}.',
+    title: missionTitle(DailyMissionType.rescue, languageCode),
+    description: missionDescription(
+      DailyMissionType.rescue,
+      languageCode,
+      target: target,
+      conceptId: weakest.conceptId,
+    ),
     progress: progress,
     target: target,
     conceptId: weakest.conceptId,
@@ -205,13 +212,14 @@ DailyMission _rescueMission(
   );
 }
 
-DailyMission _speedMission(DailyActivity activity) {
+DailyMission _speedMission(DailyActivity activity, String languageCode) {
   const target = 15;
 
   return DailyMission(
     type: DailyMissionType.speed,
-    title: 'Speed mission',
-    description: 'Answer 15 questions today.',
+    title: missionTitle(DailyMissionType.speed, languageCode),
+    description:
+        missionDescription(DailyMissionType.speed, languageCode, target: target),
     progress: activity.questionsToday,
     target: target,
     rewardXp: 40,
@@ -219,13 +227,14 @@ DailyMission _speedMission(DailyActivity activity) {
   );
 }
 
-DailyMission _memoryMission(DailyActivity activity) {
+DailyMission _memoryMission(DailyActivity activity, String languageCode) {
   const target = 5;
 
   return DailyMission(
     type: DailyMissionType.memory,
-    title: 'Memory mission',
-    description: 'Touch at least 5 different concepts today.',
+    title: missionTitle(DailyMissionType.memory, languageCode),
+    description: missionDescription(
+        DailyMissionType.memory, languageCode, target: target),
     progress: activity.distinctConceptsToday,
     target: target,
     rewardXp: 45,
@@ -233,13 +242,15 @@ DailyMission _memoryMission(DailyActivity activity) {
   );
 }
 
-DailyMission _bacExerciseMission(DailyActivity activity) {
+DailyMission _bacExerciseMission(DailyActivity activity, String languageCode) {
   const target = 1;
 
   return DailyMission(
     type: DailyMissionType.bacExercise,
-    title: 'BAC exercise',
-    description: 'Complete one full timed exam today.',
+    title: missionTitle(DailyMissionType.bacExercise, languageCode),
+    description:
+        missionDescription(DailyMissionType.bacExercise, languageCode,
+            target: target),
     progress: activity.examCompletedToday ? 1 : 0,
     target: target,
     rewardXp: 80,
@@ -247,15 +258,16 @@ DailyMission _bacExerciseMission(DailyActivity activity) {
   );
 }
 
-DailyMission _precisionMission(DailyActivity activity) {
+DailyMission _precisionMission(DailyActivity activity, String languageCode) {
   const target = 6;
   final complete =
       activity.questionsToday >= target && activity.accuracyToday >= 0.85;
 
   return DailyMission(
     type: DailyMissionType.precision,
-    title: 'Precision mission',
-    description: 'Answer at least $target questions with 85%+ accuracy.',
+    title: missionTitle(DailyMissionType.precision, languageCode),
+    description: missionDescription(DailyMissionType.precision, languageCode,
+        target: target),
     progress: activity.questionsToday,
     target: target,
     rewardXp: 60,
@@ -263,13 +275,15 @@ DailyMission _precisionMission(DailyActivity activity) {
   );
 }
 
-DailyMission _bacChallengeMission(DailyActivity activity) {
+DailyMission _bacChallengeMission(DailyActivity activity, String languageCode) {
   const target = 1;
 
   return DailyMission(
     type: DailyMissionType.bacChallenge,
-    title: 'BAC challenge',
-    description: 'Complete a full timed exam in exam conditions.',
+    title: missionTitle(DailyMissionType.bacChallenge, languageCode),
+    description:
+        missionDescription(DailyMissionType.bacChallenge, languageCode,
+            target: target),
     progress: activity.examCompletedToday ? 1 : 0,
     target: target,
     rewardXp: 100,
@@ -277,13 +291,14 @@ DailyMission _bacChallengeMission(DailyActivity activity) {
   );
 }
 
-DailyMission _foundationMission(DailyActivity activity) {
+DailyMission _foundationMission(DailyActivity activity, String languageCode) {
   const target = 5;
 
   return DailyMission(
     type: DailyMissionType.foundation,
-    title: 'Foundation mission',
-    description: 'Answer your first $target questions today.',
+    title: missionTitle(DailyMissionType.foundation, languageCode),
+    description: missionDescription(DailyMissionType.foundation, languageCode,
+        target: target),
     progress: activity.questionsToday,
     target: target,
     rewardXp: 30,

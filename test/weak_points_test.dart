@@ -49,14 +49,14 @@ void main() {
       const [
         WeakPoint(
           conceptId: 'function_definition',
-          lessonId: 'math_functions',
+          lessonId: 'math_function_definition',
           mastery: 0.30,
           attempts: 5,
           priority: WeakPointPriority.critical,
         ),
         WeakPoint(
-          conceptId: 'domain',
-          lessonId: 'math_functions',
+          conceptId: 'function_domain',
+          lessonId: 'math_function_domain',
           mastery: 0.80,
           attempts: 4,
           priority: WeakPointPriority.low,
@@ -80,7 +80,7 @@ void main() {
 
     // Worst first: the critical concept is listed above the low one.
     final criticalY = tester.getTopLeft(find.text('Function definition')).dy;
-    final lowY = tester.getTopLeft(find.text('Domain')).dy;
+    final lowY = tester.getTopLeft(find.text('Function domain')).dy;
     expect(criticalY, lessThan(lowY));
 
     // Mastery and attempts are shown per card.

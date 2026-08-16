@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../data/content_repository.dart';
 import '../data/progress_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/weak_point.dart';
 import 'lesson_page.dart';
 
@@ -82,7 +83,7 @@ class _WeakPointsPageState extends State<WeakPointsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Weak Point Hunter'),
+        title: Text(AppStrings.t(context, 'weak_point_hunter')),
       ),
       body: loading
           ? const Center(child: CircularProgressIndicator())
@@ -122,8 +123,6 @@ class _HunterHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final noun = count == 1 ? 'concept needs' : 'concepts need';
-
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -137,13 +136,13 @@ class _HunterHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.gps_fixed, color: Colors.white, size: 22),
-              SizedBox(width: 10),
+              const Icon(Icons.gps_fixed, color: Colors.white, size: 22),
+              const SizedBox(width: 10),
               Text(
-                'WEAK POINT HUNTER',
-                style: TextStyle(
+                AppStrings.t(context, 'weak_point_hunter_badge'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.2,
@@ -153,7 +152,10 @@ class _HunterHeader extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           Text(
-            '$count $noun your attention',
+            count == 1
+                ? AppStrings.t(context, 'weak_points_header_one')
+                : AppStrings.t(context, 'weak_points_header_many',
+                    args: [count]),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 22,
@@ -162,9 +164,7 @@ class _HunterHeader extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Evidence-backed: every concept here has at least 3 attempts and '
-            'is ranked by recency-weighted mastery. A single wrong answer '
-            'never makes the list.',
+            AppStrings.t(context, 'weak_points_evidence'),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.82),
               fontSize: 13,
@@ -218,12 +218,14 @@ class _WeakPointCard extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  '$percentage% mastery',
+                  AppStrings.t(context, 'percent_mastery',
+                      args: [percentage]),
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 const Spacer(),
                 Text(
-                  '${weakPoint.weakPoint.attempts} attempts',
+                  AppStrings.t(context, 'attempts_count',
+                      args: [weakPoint.weakPoint.attempts]),
                   style: TextStyle(color: Colors.grey.shade600),
                 ),
               ],
@@ -233,7 +235,7 @@ class _WeakPointCard extends StatelessWidget {
               width: double.infinity,
               child: FilledButton.tonal(
                 onPressed: onTrain,
-                child: const Text('Train this weakness'),
+                child: Text(AppStrings.t(context, 'train_this_weakness')),
               ),
             ),
           ],
@@ -257,6 +259,13 @@ class _PriorityBadge extends StatelessWidget {
       WeakPointPriority.low => const Color(0xFF22C55E),
     };
 
+    final label = switch (priority) {
+      WeakPointPriority.critical => AppStrings.t(context, 'priority_critical'),
+      WeakPointPriority.high => AppStrings.t(context, 'priority_high'),
+      WeakPointPriority.medium => AppStrings.t(context, 'priority_medium'),
+      WeakPointPriority.low => AppStrings.t(context, 'priority_low'),
+    };
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -264,7 +273,7 @@ class _PriorityBadge extends StatelessWidget {
         color: color.withValues(alpha: 0.14),
       ),
       child: Text(
-        priority.label,
+        label,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w900,
@@ -288,14 +297,13 @@ class _EmptyState extends StatelessWidget {
           children: [
             const Text('🎯', style: TextStyle(fontSize: 60)),
             const SizedBox(height: 16),
-            const Text(
-              'Not enough data yet',
-              style: TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
+            Text(
+              AppStrings.t(context, 'not_enough_data'),
+              style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
             Text(
-              'Answer at least 3 questions on a concept and we will start '
-              'identifying your weak points.',
+              AppStrings.t(context, 'not_enough_data_hint'),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey.shade600, height: 1.4),
             ),

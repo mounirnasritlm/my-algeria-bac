@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/content_repository.dart';
+import '../l10n/app_strings.dart';
+import '../models/content_source.dart';
 import '../models/exam.dart';
-import 'exam_session_page.dart';
-
-/// Practice tab: lists available BAC exams from the content repository.
+import 'exam_session_page.dart';/// Practice tab: lists available BAC exams from the content repository.
 class PracticePage extends StatefulWidget {
   final ContentRepository contentRepository;
 
@@ -44,7 +44,9 @@ class _PracticePageState extends State<PracticePage> {
           }
 
           if (exams == null || exams.isEmpty) {
-            return const Center(child: Text('No exams available yet.'));
+            return Center(
+              child: Text(AppStrings.t(context, 'no_exams_available')),
+            );
           }
 
           return RefreshIndicator(
@@ -53,14 +55,14 @@ class _PracticePageState extends State<PracticePage> {
               padding: const EdgeInsets.all(20),
               children: [
                 Text(
-                  'Practice',
+                  AppStrings.t(context, 'nav_practice'),
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Take full BAC exams under timed conditions.',
+                  AppStrings.t(context, 'practice_page_subtitle'),
                   style: TextStyle(color: Colors.grey.shade600),
                 ),
                 const SizedBox(height: 20),
@@ -78,7 +80,7 @@ class _PracticePageState extends State<PracticePage> {
   }
 }
 
-class _ExamCard extends StatelessWidget {
+class _ExamCard extends StatefulWidget {
   final Exam exam;
   final ContentRepository contentRepository;
 
@@ -88,10 +90,34 @@ class _ExamCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final isDemo = exam.source.sourceType == 'demo_content';
+  State<_ExamCard> createState() => _ExamCardState();
+}
 
-    return Card(
+class _ExamCardState extends State<_ExamCard> {
+  late Future<bool> _isDemo;
+
+  @override
+  void initState() {
+    super.initState();
+    _isDemo = _load();
+  }
+
+  Future<bool> _load() async {
+    final source = await widget.contentRepository.getSource(widget.exam.sourceId);
+    return source?.type == ContentSourceType.demo;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final exam = widget.exam;
+    final contentRepository = widget.contentRepository;
+
+    return FutureBuilder<bool>(
+      future: _isDemo,
+      builder: (context, snapshot) {
+        final isDemo = snapshot.data ?? false;
+
+        return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         contentPadding:
@@ -109,9 +135,10 @@ class _ExamCard extends StatelessWidget {
           style: const TextStyle(fontWeight: FontWeight.w800),
         ),
         subtitle: Text(
-          '${exam.durationMinutes} min • ${exam.sections.length} '
-          '${exam.sections.length == 1 ? 'section' : 'sections'}'
-          '${isDemo ? ' • Demo' : ''}',
+          '${AppStrings.t(context, 'minutes_short', args: [exam.durationMinutes])}'
+          ' • ${exam.sections.length} '
+          '${exam.sections.length == 1 ? AppStrings.t(context, 'section_one') : AppStrings.t(context, 'section_many')}'
+          '${isDemo ? ' • ${AppStrings.t(context, 'demo_tag')}' : ''}',
         ),
         trailing: const Icon(Icons.chevron_right),
         onTap: () {
@@ -124,7 +151,9 @@ class _ExamCard extends StatelessWidget {
             ),
           );
         },
-      ),
+        ),
+      );
+    },
     );
   }
 }

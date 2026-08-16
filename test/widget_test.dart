@@ -4,6 +4,7 @@
 // the bottom navigation switches tabs, and learning content loads from the
 // content repository (in-memory fake assets).
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:my_algeria_bac/data/json_content_repository.dart';
@@ -22,26 +23,26 @@ void main() {
     await tester.pumpWidget(StudyApp(contentRepository: repository));
     await tester.pumpAndSettle();
 
-    expect(find.text('Ready for BAC?'), findsOneWidget);
-    expect(find.text('TODAY\'S MISSION'), findsOneWidget);
+    expect(find.text('جاهز للبكالوريا؟'), findsOneWidget);
+    expect(find.text('مهمة اليوم'), findsOneWidget);
 
-    await tester.tap(find.text('Learn'));
+    await tester.tap(find.text('تعلّم'));
     await tester.pumpAndSettle();
     expect(
-      find.text('Choose a subject to start learning.'),
+      find.text('اختر مادة لبدء التعلّم.'),
       findsOneWidget,
     );
 
-    await tester.tap(find.text('Mathematics'));
+    await tester.tap(find.text('الرياضيات'));
     await tester.pumpAndSettle();
-    expect(find.text('Learning path'), findsOneWidget);
-    expect(find.text('Functions'), findsOneWidget);
+    expect(find.text('مسار التعلّم'), findsOneWidget);
+    expect(find.text('الدوال'), findsOneWidget);
 
-    await tester.pageBack();
+    await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Home'));
+    await tester.tap(find.text('الرئيسية'));
     await tester.pumpAndSettle();
-    expect(find.text('Ready for BAC?'), findsOneWidget);
+    expect(find.text('جاهز للبكالوريا؟'), findsOneWidget);
   });
 }

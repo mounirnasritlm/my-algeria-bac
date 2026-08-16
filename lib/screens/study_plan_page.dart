@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language.dart';
 import '../data/content_repository.dart';
 import '../data/study_plan_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/study_plan.dart';
 import 'lesson_page.dart';
 import 'study_settings_page.dart';
@@ -13,11 +15,13 @@ class StudyPlanPage extends StatefulWidget {
 
   /// Injectable for tests; defaults to a repository over the real services.
   final StudyPlanRepository? planRepository;
+  final String? languageCode;
 
   const StudyPlanPage({
     super.key,
     required this.contentRepository,
     this.planRepository,
+    this.languageCode,
   });
 
   @override
@@ -32,7 +36,10 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
   void initState() {
     super.initState();
     _repository = widget.planRepository ??
-        StudyPlanRepository(contentRepository: widget.contentRepository);
+        StudyPlanRepository(
+          contentRepository: widget.contentRepository,
+          languageCode: widget.languageCode ?? appLanguage,
+        );
     _planFuture = _repository.generateTodayPlan();
   }
 
@@ -72,12 +79,12 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Study Plan'),
+        title: Text(AppStrings.t(context, 'my_study_plan')),
         actions: [
           IconButton(
             onPressed: _openSettings,
             icon: const Icon(Icons.tune),
-            tooltip: 'Study preferences',
+            tooltip: AppStrings.t(context, 'study_preferences'),
           ),
         ],
       ),
@@ -97,14 +104,14 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                   children: [
                     const Icon(Icons.error_outline, size: 48),
                     const SizedBox(height: 12),
-                    const Text(
-                      'We could not create your study plan.',
+                    Text(
+                      AppStrings.t(context, 'plan_error'),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 12),
                     FilledButton(
                       onPressed: _refreshPlan,
-                      child: const Text('Retry'),
+                      child: Text(AppStrings.t(context, 'retry')),
                     ),
                   ],
                 ),
@@ -123,7 +130,7 @@ class _StudyPlanPageState extends State<StudyPlanPage> {
                 _PlanHeader(plan: plan),
                 const SizedBox(height: 20),
                 Text(
-                  'Today',
+                  AppStrings.t(context, 'today'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
@@ -165,9 +172,9 @@ class _PlanHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '🎯 SMART STUDY PLAN',
-            style: TextStyle(
+          Text(
+            AppStrings.t(context, 'smart_study_plan'),
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w900,
               letterSpacing: 1,
@@ -175,7 +182,7 @@ class _PlanHeader extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            '$completed / $total tasks',
+            AppStrings.t(context, 'tasks_count', args: [completed, total]),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 25,
@@ -184,7 +191,8 @@ class _PlanHeader extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '${plan.availableMinutes} minutes available today',
+            AppStrings.t(context, 'minutes_available',
+                args: [plan.availableMinutes]),
             style: const TextStyle(color: Colors.white70),
           ),
           const SizedBox(height: 18),
@@ -241,7 +249,8 @@ class _StudyTaskCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${task.estimatedMinutes} min',
+                          AppStrings.t(context, 'minutes_short',
+                              args: [task.estimatedMinutes]),
                           style: TextStyle(
                             color: Colors.grey.shade600,
                             fontSize: 12,

@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
+import '../content/content_coordinator.dart';
+import '../content/content_sync_result.dart';
 import '../data/bac_ranks.dart';
 import '../data/campaign_engine.dart';
 import '../data/content_repository.dart';
 import '../data/levels_engine.dart';
 import '../data/progress_repository.dart';
 import '../data/streak_repository.dart';
+import '../l10n/app_strings.dart';
+import '../l10n/engine_strings.dart';
 import '../models/bac_campaign.dart';
 import '../models/concept_mastery.dart';
+import '../models/content_status.dart';
 import '../models/exam.dart';
 import '../models/subject.dart';
 import '../services/gamification_service.dart';
@@ -21,12 +27,16 @@ import 'weak_points_page.dart';
 class HomePage extends StatefulWidget {
   final ContentRepository contentRepository;
 
+  /// Optional content pipeline coordinator, used to surface sync state.
+  final ContentCoordinator? contentCoordinator;
+
   /// Called to switch to a bottom navigation tab (mission actions).
   final ValueChanged<int>? onNavigateToTab;
 
   const HomePage({
     super.key,
     required this.contentRepository,
+    this.contentCoordinator,
     this.onNavigateToTab,
   });
 
@@ -38,6 +48,10 @@ class _HomePageState extends State<HomePage> {
   final ProgressRepository _progress = ProgressRepository();
 
   bool _loading = true;
+
+  ContentStatus? _contentStatus;
+  ContentSyncResult? _lastSync;
+  bool _contentSyncing = false;
 
   BacCountdown? _countdown;
   DailyMission? _mission;
@@ -51,15 +65,69 @@ class _HomePageState extends State<HomePage> {
   List<_SubjectBar> _subjectBars = const [];
   List<Exam> _exams = const [];
   DateTime? _bacDate;
+  String? _languageCode;
 
   @override
   void initState() {
     super.initState();
+    widget.contentCoordinator?.addListener(_onContentChanged);
+    _onContentChanged();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final languageCode = appLanguageOf(context);
+    if (_languageCode == languageCode) {
+      return;
+    }
+
+    _languageCode = languageCode;
     _load();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.contentCoordinator != widget.contentCoordinator) {
+      oldWidget.contentCoordinator?.removeListener(_onContentChanged);
+      widget.contentCoordinator?.addListener(_onContentChanged);
+    }
+    if (oldWidget.contentRepository != widget.contentRepository) {
+      _load();
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.contentCoordinator?.removeListener(_onContentChanged);
+    super.dispose();
+  }
+
+  void _onContentChanged() {
+    final coordinator = widget.contentCoordinator;
+    if (coordinator == null) {
+      return;
+    }
+    setState(() {
+      _contentStatus = coordinator.status;
+      _lastSync = coordinator.lastSync;
+      _contentSyncing = coordinator.syncing;
+    });
+  }
+
+  Future<void> _retrySync() async {
+    final coordinator = widget.contentCoordinator;
+    if (coordinator == null || coordinator.syncing) {
+      return;
+    }
+    await coordinator.syncNow();
   }
 
   Future<void> _load() async {
     final today = DateTime.now();
+    final languageCode =
+        _languageCode ?? appLanguageWithoutListening(context);
 
     final bacDate = await _progress.getBacDate();
     final mastery = await _progress.getAllConceptMastery();
@@ -90,7 +158,7 @@ class _HomePageState extends State<HomePage> {
 
       subjectBars.add(
         _SubjectBar(
-          name: subject.name,
+          name: subject.nameForLanguage(languageCode),
           accuracy: entry.value.correct / attempts,
         ),
       );
@@ -109,6 +177,7 @@ class _HomePageState extends State<HomePage> {
       today: today,
       mastery: mastery,
       activity: activity,
+      languageCode: languageCode,
     );
 
     // Award once per day, guarded by the completion date, so the XP chip
@@ -156,11 +225,16 @@ class _HomePageState extends State<HomePage> {
     final map = <String, String>{};
 
     for (final subject in subjects) {
-      final lessons = await widget.contentRepository
-          .getLessonsForSubject(subject.id);
+      final chapters =
+          await widget.contentRepository.getChaptersForSubject(subject.id);
 
-      for (final lesson in lessons) {
-        map[lesson.id] = subject.id;
+      for (final chapter in chapters) {
+        final lessons =
+            await widget.contentRepository.getLessonsForChapter(chapter.id);
+
+        for (final lesson in lessons) {
+          map[lesson.id] = subject.id;
+        }
       }
     }
 
@@ -216,6 +290,8 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute<void>(
         builder: (_) => StudyPlanPage(
           contentRepository: widget.contentRepository,
+          languageCode:
+              _languageCode ?? appLanguageWithoutListening(context),
         ),
       ),
     );
@@ -259,6 +335,11 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
                 children: [
                   _header(context),
+
+                  if (widget.contentCoordinator != null) ...[
+                    const SizedBox(height: 12),
+                    _contentStatusBanner(context),
+                  ],
 
                   const SizedBox(height: 20),
 
@@ -306,7 +387,7 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Ready for BAC?',
+                AppStrings.t(context, 'ready_for_bac'),
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                     ),
@@ -321,6 +402,114 @@ class _HomePageState extends State<HomePage> {
         _xpChip(),
       ],
     );
+  }
+
+  Widget _contentStatusBanner(BuildContext context) {
+    final ContentStatus? status = _contentStatus;
+    final ContentSyncResult? lastSync = _lastSync;
+    final bool syncing = _contentSyncing;
+
+    final bool usingCache =
+        status?.usingCachedContent ?? false;
+    final String? version = status?.version;
+
+    final (IconData icon, Color color, String label) = _statusAppearance(
+      context,
+      syncing: syncing,
+      lastSync: lastSync,
+      usingCache: usingCache,
+      version: version,
+    );
+
+    return Material(
+      color: color.withValues(alpha: 0.10),
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        onTap: _retrySync,
+        borderRadius: BorderRadius.circular(14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: Row(
+            children: [
+              if (syncing)
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: color,
+                  ),
+                )
+              else
+                Icon(icon, color: color, size: 18),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              if (!syncing && lastSync != null)
+                Icon(Icons.refresh, color: color, size: 16),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  (IconData, Color, String) _statusAppearance(
+    BuildContext context, {
+    required bool syncing,
+    required ContentSyncResult? lastSync,
+    required bool usingCache,
+    required String? version,
+  }) {
+    final info = Colors.blueGrey;
+    final ok = Colors.green.shade800;
+    final warn = Colors.orange.shade900;
+    final err = Colors.red.shade700;
+
+    if (syncing) {
+      return (Icons.sync, info, AppStrings.t(context, 'banner_checking'));
+    }
+
+    final status = lastSync?.status;
+    switch (status) {
+      case ContentSyncStatus.updated:
+        return (Icons.cloud_done, ok,
+            AppStrings.t(context, 'banner_content_updated', args: [version]));
+      case ContentSyncStatus.firstInstall:
+        return (Icons.cloud_download, ok,
+            AppStrings.t(context, 'banner_content_downloaded', args: [version]));
+      case ContentSyncStatus.upToDate:
+        return (Icons.check_circle, ok,
+            usingCache
+                ? AppStrings.t(context, 'banner_content_up_to_date', args: [version])
+                : AppStrings.t(context, 'banner_up_to_date'));
+      case ContentSyncStatus.offlineUsingCache:
+        return (Icons.wifi_off, warn,
+            usingCache
+                ? AppStrings.t(context, 'banner_offline_cached', args: [version])
+                : AppStrings.t(context, 'banner_offline_bundled'));
+      case ContentSyncStatus.rejectedInvalidUpdate:
+        return (Icons.error_outline, err,
+            usingCache
+                ? AppStrings.t(context, 'banner_update_rejected_cached', args: [version])
+                : AppStrings.t(context, 'banner_update_rejected_bundled'));
+      case ContentSyncStatus.failed:
+      case null:
+        if (usingCache) {
+          return (Icons.wifi_off, warn,
+              AppStrings.t(context, 'banner_offline_cached', args: [version]));
+        }
+        return (Icons.cloud_off, warn,
+            AppStrings.t(context, 'banner_using_bundled'));
+    }
   }
 
   Widget _rankChip() {
@@ -421,18 +610,18 @@ class _HomePageState extends State<HomePage> {
           ? Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'BAC COUNTDOWN',
-                  style: TextStyle(
+                Text(
+                  AppStrings.t(context, 'bac_countdown').toUpperCase(),
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 1.2,
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Set your BAC exam date\nto start the countdown.',
-                  style: TextStyle(
+                Text(
+                  AppStrings.t(context, 'set_bac_date_prompt'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
@@ -441,7 +630,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: _pickBacDate,
-                  child: const Text('Set BAC date'),
+                  child: Text(AppStrings.t(context, 'set_bac_date')),
                 ),
               ],
             )
@@ -450,9 +639,9 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Row(
                   children: [
-                    const Text(
-                      'BAC COUNTDOWN',
-                      style: TextStyle(
+                    Text(
+                      AppStrings.t(context, 'bac_countdown').toUpperCase(),
+                      style: const TextStyle(
                         color: Colors.white70,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.2,
@@ -466,7 +655,7 @@ class _HomePageState extends State<HomePage> {
                         padding: const EdgeInsets.all(4),
                         child: Text(
                           _bacDate == null
-                              ? 'Set date'
+                              ? AppStrings.t(context, 'set_date')
                               : '${_bacDate!.year}',
                           style: const TextStyle(
                             color: Colors.white70,
@@ -480,7 +669,8 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  '${countdown.daysRemaining} DAYS',
+                  AppStrings.t(context, 'days_remaining',
+                      args: [countdown.daysRemaining]),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 40,
@@ -490,8 +680,10 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${countdown.weeksRemaining} weeks • '
-                  '${countdown.hoursRemaining} hours',
+                  AppStrings.t(context, 'weeks_hours', args: [
+                    countdown.weeksRemaining,
+                    countdown.hoursRemaining,
+                  ]),
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.75),
                     fontSize: 13,
@@ -508,7 +700,10 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    countdown.season.label.toUpperCase(),
+                    seasonLabel(
+                      countdown.season,
+                      appLanguageOf(context),
+                    ).toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
@@ -553,10 +748,10 @@ class _HomePageState extends State<HomePage> {
                   child: const Icon(Icons.flag, color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 12),
-                const Expanded(
+                Expanded(
                   child: Text(
-                    "TODAY'S MISSION",
-                    style: TextStyle(
+                    AppStrings.t(context, 'todays_mission'),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.8,
@@ -634,31 +829,31 @@ class _HomePageState extends State<HomePage> {
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: _openStudyPlan,
-        child: const Padding(
-          padding: EdgeInsets.all(18),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
           child: Row(
             children: [
-              Text('🧠', style: TextStyle(fontSize: 30)),
-              SizedBox(width: 14),
+              const Text('🧠', style: TextStyle(fontSize: 30)),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'My Study Plan',
-                      style: TextStyle(
+                      AppStrings.t(context, 'my_study_plan'),
+                      style: const TextStyle(
                         fontWeight: FontWeight.w900,
                         fontSize: 17,
                       ),
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      'A plan built around what you need to improve.',
+                      AppStrings.t(context, 'plan_hook'),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right),
+              const Icon(Icons.chevron_right),
             ],
           ),
         ),
@@ -673,10 +868,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Overall accuracy',
-                    style: TextStyle(fontWeight: FontWeight.w800),
+                    AppStrings.t(context, 'overall_accuracy'),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
                 ),
                 Text(
@@ -701,11 +896,17 @@ class _HomePageState extends State<HomePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _StatItem(value: '$_questionsAnswered', label: 'Questions'),
-                _StatItem(value: '$_longestStreak', label: 'Longest streak'),
+                _StatItem(
+                  value: '$_questionsAnswered',
+                  label: AppStrings.t(context, 'stat_questions'),
+                ),
+                _StatItem(
+                  value: '$_longestStreak',
+                  label: AppStrings.t(context, 'stat_longest_streak'),
+                ),
                 _StatItem(
                   value: '$_attentionConcepts',
-                  label: 'Weak concepts',
+                  label: AppStrings.t(context, 'stat_weak_concepts'),
                 ),
               ],
             ),
@@ -720,7 +921,7 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Your BAC profile',
+          AppStrings.t(context, 'your_bac_profile'),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900,
               ),
@@ -731,7 +932,7 @@ class _HomePageState extends State<HomePage> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Answer some questions to see your per-subject profile.',
+                AppStrings.t(context, 'profile_empty_hint'),
                 style: TextStyle(color: Colors.grey.shade600),
               ),
             ),
@@ -756,8 +957,9 @@ class _HomePageState extends State<HomePage> {
           icon: const Icon(Icons.warning_amber_outlined),
           label: Text(
             _attentionConcepts == 0
-                ? 'No weak concepts — keep it up!'
-                : '$_attentionConcepts concepts need attention',
+                ? AppStrings.t(context, 'no_weak_concepts_keep_up')
+                : AppStrings.t(context, 'concepts_need_attention',
+                    args: [_attentionConcepts]),
           ),
         ),
       ],
@@ -778,13 +980,13 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.sports_martial_arts, color: Colors.white, size: 24),
-              SizedBox(width: 10),
+              const Icon(Icons.sports_martial_arts, color: Colors.white, size: 24),
+              const SizedBox(width: 10),
               Text(
-                'BAC BOSS',
-                style: TextStyle(
+                AppStrings.t(context, 'bac_boss_brand'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1,
@@ -793,9 +995,9 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Can you survive a full paper?',
-            style: TextStyle(
+          Text(
+            AppStrings.t(context, 'survive_full_paper'),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w900,
@@ -803,9 +1005,10 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 6),
           Text(
-            '${_exams.length} '
-            '${_exams.length == 1 ? 'exam' : 'exams'} available • timed • '
-            'real conditions',
+            _exams.length == 1
+                ? AppStrings.t(context, 'exams_available_one')
+                : AppStrings.t(context, 'exams_available_many',
+                    args: [_exams.length]),
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.85),
               fontSize: 13,
@@ -828,7 +1031,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 );
               },
-              child: const Text('Enter the Arena'),
+              child: Text(AppStrings.t(context, 'enter_arena')),
             ),
           ),
         ],

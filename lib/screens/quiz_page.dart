@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
 import '../data/achievement_engine.dart';
 import '../data/achievement_repository.dart';
 import '../data/content_repository.dart';
 import '../data/progress_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/question.dart';
 import '../models/streak.dart';
 import '../services/gamification_service.dart';
@@ -52,12 +54,24 @@ class _QuizPageState extends State<QuizPage> {
   double? score;
 
   String? _lessonTitle;
+  String? _languageCode;
 
   Timer? _nextQuestionTimer;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final languageCode = appLanguageOf(context);
+    if (_languageCode == languageCode) {
+      return;
+    }
+
+    _languageCode = languageCode;
     _load();
   }
 
@@ -80,7 +94,7 @@ class _QuizPageState extends State<QuizPage> {
 
     setState(() {
       questions = quizQuestions;
-      _lessonTitle = lesson?.title;
+       _lessonTitle = lesson?.titleForLanguage(_languageCode ?? 'ar');
       loading = false;
     });
   }
@@ -216,21 +230,21 @@ class _QuizPageState extends State<QuizPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('End quiz'),
-        content: const Text(
-          'You can end the quiz early and save your current score.',
+        title: Text(AppStrings.t(dialogContext, 'end_quiz')),
+        content: Text(
+          AppStrings.t(dialogContext, 'end_quiz_confirm'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Continue'),
+            child: Text(AppStrings.t(dialogContext, 'continue')),
           ),
           FilledButton(
             onPressed: () {
               Navigator.of(dialogContext).pop();
               _finishQuiz();
             },
-            child: const Text('End quiz'),
+            child: Text(AppStrings.t(dialogContext, 'end_quiz')),
           ),
         ],
       ),
@@ -255,8 +269,8 @@ class _QuizPageState extends State<QuizPage> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
-        body: const Center(
-          child: Text('No questions available yet.'),
+        body: Center(
+          child: Text(AppStrings.t(context, 'no_questions_yet')),
         ),
       );
     }
@@ -276,7 +290,7 @@ class _QuizPageState extends State<QuizPage> {
                 _openScoreDialog();
               }
             },
-            child: const Text('End quiz'),
+            child: Text(AppStrings.t(context, 'end_quiz')),
           ),
         ],
       ),
@@ -342,7 +356,7 @@ class _QuizPageState extends State<QuizPage> {
                   child: FilledButton.icon(
                     onPressed: _finishQuiz,
                     icon: const Icon(Icons.flag),
-                    label: const Text('Finish and save'),
+                    label: Text(AppStrings.t(context, 'finish_and_save')),
                   ),
                 ),
               ),

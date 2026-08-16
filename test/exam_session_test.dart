@@ -1,4 +1,4 @@
-// Widget tests for the BAC Boss exam session flow:
+﻿// Widget tests for the BAC Boss exam session flow:
 // intro -> start -> answer -> navigate -> flag -> submit -> report,
 // plus the auto-submit path when a saved session has expired while the
 // app was closed.
@@ -90,10 +90,10 @@ void main() {
     expect(find.text('BAC Arena'), findsOneWidget);
     expect(find.text('⚔️ BAC BOSS'), findsOneWidget);
     expect(find.text('Available exams'), findsOneWidget);
-    expect(find.text('Mathematics'), findsOneWidget);
+    expect(find.text('الرياضيات'), findsOneWidget);
     expect(find.text('5 questions • 180 min'), findsOneWidget);
 
-    await tester.tap(find.text('Mathematics'));
+    await tester.tap(find.text('الرياضيات'));
     await tester.pumpAndSettle();
 
     expect(find.text('BAC BOSS'), findsOneWidget);
@@ -128,7 +128,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('BAC BOSS'), findsOneWidget);
-    expect(find.text('Mathematics'), findsOneWidget);
+    expect(find.text('الرياضيات'), findsOneWidget);
     expect(find.text('5'), findsOneWidget);
     expect(find.text('Enter the Boss'), findsOneWidget);
 

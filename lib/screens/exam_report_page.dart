@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
 import '../data/comeback_engine.dart';
 import '../data/content_repository.dart';
 import '../data/exam_scoring.dart';
 import '../data/progress_repository.dart';
+import '../l10n/app_strings.dart';
+import '../l10n/engine_strings.dart';
 import '../models/comeback.dart';
 import '../models/exam_attempt.dart';
 import '../services/gamification_service.dart';
@@ -100,7 +103,7 @@ class _ExamReportPageState extends State<ExamReportPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Exam report'),
+        title: Text(AppStrings.t(context, 'exam_report')),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -116,7 +119,7 @@ class _ExamReportPageState extends State<ExamReportPage> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Time ran out — your exam was submitted automatically.',
+                  AppStrings.t(context, 'time_ran_out'),
                   style: TextStyle(
                     color: Theme.of(context).colorScheme.onErrorContainer,
                     fontWeight: FontWeight.w600,
@@ -134,13 +137,15 @@ class _ExamReportPageState extends State<ExamReportPage> {
                         ),
                   ),
                   Text(
-                    'out of 20',
+                    AppStrings.t(context, 'out_of_20'),
                     style: TextStyle(color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${attempt.correctCount}/${attempt.totalQuestions} '
-                    'correct',
+                    AppStrings.t(context, 'correct_of_total', args: [
+                      attempt.correctCount,
+                      attempt.totalQuestions,
+                    ]),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -155,17 +160,20 @@ class _ExamReportPageState extends State<ExamReportPage> {
               children: [
                 Expanded(
                   child: _StatCard(
-                    label: 'Time used',
+                    label: AppStrings.t(context, 'time_used'),
                     value: _formattedTime,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _StatCard(
-                    label: 'Time management',
-                    value: timeManagementLabel(
-                      timeUsedSeconds: attempt.timeUsedSeconds,
-                      durationMinutes: attempt.durationMinutes,
+                    label: AppStrings.t(context, 'time_management'),
+                    value: timeManagementLabelFor(
+                      timeManagementLabel(
+                        timeUsedSeconds: attempt.timeUsedSeconds,
+                        durationMinutes: attempt.durationMinutes,
+                      ),
+                      appLanguageOf(context),
                     ),
                   ),
                 ),
@@ -173,46 +181,48 @@ class _ExamReportPageState extends State<ExamReportPage> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Scores are a demo estimate: every question counts equally '
-              'toward /20. Official point allocations are not part of the '
-              'source content.',
+              AppStrings.t(context, 'score_disclaimer'),
               style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
             ),
             const SizedBox(height: 24),
             Text(
-              'Strong concepts',
+              AppStrings.t(context, 'strong_concepts'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
             ),
             const SizedBox(height: 8),
             if (attempt.conceptResults.where((c) => c.isStrength).isEmpty)
-              _EmptyHint(text: 'Nothing to highlight yet.'),
+              _EmptyHint(text: AppStrings.t(context, 'nothing_to_highlight')),
             for (final concept
                 in attempt.conceptResults.where((c) => c.isStrength))
               _ConceptTile(
                 icon: Icons.check_circle_outline,
                 color: Colors.green,
                 name: _conceptNames[concept.conceptId] ?? concept.conceptId,
-                detail: '${_percent(concept.accuracy)}% correct',
+                detail: AppStrings.t(context, 'percent_correct',
+                    args: [_percent(concept.accuracy)]),
               ),
             const SizedBox(height: 24),
             Text(
-              'Weak concepts',
+              AppStrings.t(context, 'weak_concepts'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
             ),
             const SizedBox(height: 8),
             if (attempt.conceptResults.where((c) => c.isWeakness).isEmpty)
-              _EmptyHint(text: 'No weak concepts in this attempt.'),
+              _EmptyHint(
+                text: AppStrings.t(context, 'no_weak_concepts_attempt'),
+              ),
             for (final concept
                 in attempt.conceptResults.where((c) => c.isWeakness))
               _ConceptTile(
                 icon: Icons.error_outline,
                 color: Colors.orange,
                 name: _conceptNames[concept.conceptId] ?? concept.conceptId,
-                detail: '${_percent(concept.accuracy)}% correct',
+                detail: AppStrings.t(context, 'percent_correct',
+                    args: [_percent(concept.accuracy)]),
               ),
             const SizedBox(height: 24),
             SizedBox(
@@ -231,9 +241,9 @@ class _ExamReportPageState extends State<ExamReportPage> {
                           ),
                         );
                       },
-                      child: const Text(
-                        'Rematch',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                      child: Text(
+                        AppStrings.t(context, 'rematch'),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -244,7 +254,7 @@ class _ExamReportPageState extends State<ExamReportPage> {
                         Navigator.of(context)
                             .popUntil((route) => route.isFirst);
                       },
-                      child: const Text('Back to practice'),
+                      child: Text(AppStrings.t(context, 'back_to_practice')),
                     ),
                   ),
                 ],
@@ -254,7 +264,7 @@ class _ExamReportPageState extends State<ExamReportPage> {
             if (isPassingScore(attempt.scoreOn20))
               Center(
                 child: Text(
-                  'Passing grade reached — keep it up!',
+                  AppStrings.t(context, 'passing_grade_reached'),
                   style: TextStyle(color: Colors.green.shade700),
                 ),
               ),
@@ -313,6 +323,7 @@ class _ExamReportPageState extends State<ExamReportPage> {
       previousScore: _previousScore,
       weakConcept: weak,
       weakConceptLessonId: lessonId,
+      languageCode: appLanguageOf(context),
     );
   }
 }
@@ -346,9 +357,9 @@ class _ComebackCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Not the result you wanted?',
-            style: TextStyle(
+          Text(
+            AppStrings.t(context, 'not_result_wanted_question'),
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 18,
               fontWeight: FontWeight.w900,
@@ -356,19 +367,17 @@ class _ComebackCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'We built a 7-day plan around $conceptName to get you back '
-            'on track.',
+            AppStrings.t(context, 'comeback_pitch', args: [conceptName]),
             style: TextStyle(color: Colors.white.withValues(alpha: 0.92)),
           ),
           if (improvement != null) ...[
             const SizedBox(height: 10),
             Text(
               improvement >= 0
-                  ? 'You are improving: +'
-                      '${improvement.toStringAsFixed(1)} vs your previous '
-                      'attempt.'
-                  : 'Previous attempt: ${plan.previousScore?.toStringAsFixed(1)}'
-                      '/20. This is where the rematch starts.',
+                  ? AppStrings.t(context, 'improving_vs',
+                      args: [improvement.toStringAsFixed(1)])
+                  : AppStrings.t(context, 'previous_attempt',
+                      args: [plan.previousScore?.toStringAsFixed(1)]),
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.92),
                 fontWeight: FontWeight.w600,
@@ -384,9 +393,9 @@ class _ComebackCard extends StatelessWidget {
                 foregroundColor: Colors.deepOrange.shade600,
               ),
               onPressed: onStart,
-              child: const Text(
-                'Start comeback',
-                style: TextStyle(fontWeight: FontWeight.w900),
+              child: Text(
+                AppStrings.t(context, 'start_comeback'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
               ),
             ),
           ),
@@ -404,6 +413,7 @@ class _ReportGamification extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final levelUp = result.levelUp;
+    final languageCode = appLanguageOf(context);
 
     if (levelUp == null && !result.hasNewAchievements) {
       return const SizedBox.shrink();
@@ -424,9 +434,9 @@ class _ReportGamification extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (levelUp != null) ...[
-              const Text(
-                '🎉 LEVEL UP!',
-                style: TextStyle(
+              Text(
+                AppStrings.t(context, 'level_up_banner'),
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
                   fontWeight: FontWeight.w900,
@@ -435,7 +445,8 @@ class _ReportGamification extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'Level ${levelUp.oldLevel} → ${levelUp.newLevel}',
+                AppStrings.t(context, 'level_x_to_y',
+                    args: [levelUp.oldLevel, levelUp.newLevel]),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
@@ -457,7 +468,7 @@ class _ReportGamification extends StatelessWidget {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          achievement.title,
+                          achievement.titleForLanguage(languageCode),
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w700,
@@ -465,7 +476,8 @@ class _ReportGamification extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '+${achievement.xpReward} XP',
+                        AppStrings.t(context, 'xp_reward',
+                            args: [achievement.xpReward]),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,

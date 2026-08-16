@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
 import '../data/content_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/subject.dart';
 import 'subject_page.dart';
 
@@ -27,14 +29,14 @@ class _SubjectsPageState extends State<SubjectsPage> {
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'Learn',
+            AppStrings.t(context, 'learn_title'),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
           ),
           const SizedBox(height: 6),
           Text(
-            'Choose a subject to start learning.',
+            AppStrings.t(context, 'choose_subject'),
             style: TextStyle(
               color: Colors.grey.shade600,
             ),
@@ -124,7 +126,7 @@ class _SubjectCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      subject.name,
+                       subject.nameForLanguage(appLanguageOf(context)),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w900,

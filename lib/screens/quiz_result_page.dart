@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
+import '../l10n/app_strings.dart';
 import '../models/achievement.dart';
 import '../services/gamification_service.dart';
 
@@ -29,20 +31,20 @@ class QuizResultPage extends StatelessWidget {
     return correctAnswers * 10;
   }
 
-  String get title {
+  String title(BuildContext context) {
     if (accuracy >= 0.90) {
-      return 'Excellent!';
+      return AppStrings.t(context, 'result_excellent');
     }
 
     if (accuracy >= 0.70) {
-      return 'Great work!';
+      return AppStrings.t(context, 'result_great_work');
     }
 
     if (accuracy >= 0.50) {
-      return 'Good start!';
+      return AppStrings.t(context, 'result_good_start');
     }
 
-    return 'Keep practicing!';
+    return AppStrings.t(context, 'result_keep_practicing');
   }
 
   @override
@@ -51,7 +53,7 @@ class QuizResultPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Quiz result'),
+        title: Text(AppStrings.t(context, 'quiz_result')),
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
@@ -80,7 +82,7 @@ class QuizResultPage extends StatelessWidget {
                 const SizedBox(height: 24),
 
                 Text(
-                  title,
+                  title(context),
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
@@ -89,7 +91,8 @@ class QuizResultPage extends StatelessWidget {
                 const SizedBox(height: 8),
 
                 Text(
-                  '$correctAnswers / $totalQuestions correct',
+                  AppStrings.t(context, 'correct_of_total',
+                      args: [correctAnswers, totalQuestions]),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: Colors.grey.shade600,
                       ),
@@ -114,7 +117,7 @@ class QuizResultPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          'Accuracy',
+                          AppStrings.t(context, 'accuracy'),
                           style: TextStyle(
                             color: Colors.grey.shade600,
                           ),
@@ -128,16 +131,16 @@ class QuizResultPage extends StatelessWidget {
                           children: [
                             _ResultStat(
                               value: '$correctAnswers',
-                              label: 'Correct',
+                              label: AppStrings.t(context, 'correct'),
                             ),
                             _ResultStat(
                               value:
                                   '${totalQuestions - correctAnswers}',
-                              label: 'Wrong',
+                              label: AppStrings.t(context, 'wrong'),
                             ),
                             _ResultStat(
                               value: '+$xpEarned',
-                              label: 'XP',
+                              label: AppStrings.t(context, 'xp'),
                             ),
                           ],
                         ),
@@ -155,7 +158,7 @@ class QuizResultPage extends StatelessWidget {
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
-                    child: const Text('Back to lesson'),
+                    child: Text(AppStrings.t(context, 'back_to_lesson')),
                   ),
                 ),
               ],
@@ -192,9 +195,9 @@ class _GamificationSummary extends StatelessWidget {
               children: [
                 const Text('🎉', style: TextStyle(fontSize: 34)),
                 const SizedBox(height: 6),
-                const Text(
-                  'LEVEL UP!',
-                  style: TextStyle(
+                Text(
+                  AppStrings.t(context, 'level_up'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w900,
@@ -203,7 +206,8 @@ class _GamificationSummary extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${levelUp.oldLevel} → ${levelUp.newLevel}',
+                  AppStrings.t(context, 'level_x_to_y',
+                      args: [levelUp.oldLevel, levelUp.newLevel]),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 28,
@@ -222,9 +226,9 @@ class _GamificationSummary extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Achievement unlocked',
-                    style: TextStyle(
+                  Text(
+                    AppStrings.t(context, 'achievement_unlocked'),
+                    style: const TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 15,
                     ),
@@ -250,6 +254,8 @@ class _AchievementRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final languageCode = appLanguageOf(context);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
@@ -261,11 +267,11 @@ class _AchievementRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  achievement.title,
+                  achievement.titleForLanguage(languageCode),
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
                 Text(
-                  achievement.description,
+                  achievement.descriptionForLanguage(languageCode),
                   style: TextStyle(
                     color: Colors.grey.shade600,
                     fontSize: 12,

@@ -1,3 +1,4 @@
+import '../l10n/engine_strings.dart';
 import '../models/comeback.dart';
 import '../models/exam_attempt.dart';
 
@@ -32,6 +33,7 @@ ComebackPlan buildComebackPlan({
   required double? previousScore,
   required ExamConceptResult weakConcept,
   required String weakConceptLessonId,
+  String languageCode = 'en',
 }) {
   return ComebackPlan(
     examId: examId,
@@ -39,49 +41,31 @@ ComebackPlan buildComebackPlan({
     previousScore: previousScore,
     conceptId: weakConcept.conceptId,
     lessonId: weakConceptLessonId,
-    days: const [
-      ComebackDay(
-        day: 1,
-        kind: ComebackDayKind.review,
-        title: 'Concept review',
-        description: 'Re-read the lesson for your weak concept.',
-      ),
-      ComebackDay(
-        day: 2,
-        kind: ComebackDayKind.practice,
-        title: '10 targeted exercises',
-        description: 'Practice questions aimed at your weak concept.',
-      ),
-      ComebackDay(
-        day: 3,
-        kind: ComebackDayKind.practice,
-        title: 'Targeted quiz',
-        description: 'Re-test your weak concept in a short quiz.',
-      ),
-      ComebackDay(
-        day: 4,
-        kind: ComebackDayKind.rematch,
-        title: 'Timed exercise',
-        description: 'A timed exam section under real conditions.',
-      ),
-      ComebackDay(
-        day: 5,
-        kind: ComebackDayKind.practice,
-        title: 'Review your mistakes',
-        description: 'Consolidate before the rematch.',
-      ),
-      ComebackDay(
-        day: 6,
-        kind: ComebackDayKind.review,
-        title: 'Final review',
-        description: 'Quick refresh of the concept and its rules.',
-      ),
-      ComebackDay(
-        day: 7,
-        kind: ComebackDayKind.rematch,
-        title: 'Boss rematch',
-        description: 'Take the full exam again and beat your score.',
-      ),
+    days: [
+      for (var day = 1; day <= 7; day++)
+        ComebackDay(
+          day: day,
+          kind: _comebackKindFor(day),
+          title: comebackDayTitle(day, languageCode),
+          description: comebackDayDescription(day, languageCode),
+        ),
     ],
   );
+}
+
+ComebackDayKind _comebackKindFor(int day) {
+  switch (day) {
+    case 1:
+      return ComebackDayKind.review;
+    case 2:
+    case 3:
+      return ComebackDayKind.practice;
+    case 4:
+    case 7:
+      return ComebackDayKind.rematch;
+    case 5:
+      return ComebackDayKind.practice;
+    default:
+      return ComebackDayKind.review;
+  }
 }

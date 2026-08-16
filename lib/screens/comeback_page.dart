@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/content_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/comeback.dart';
 import 'exam_session_page.dart';
 import 'lesson_page.dart';
@@ -69,7 +70,7 @@ class _ComebackPageState extends State<ComebackPage> {
     final improvement = plan.improvement;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Comeback plan')),
+      appBar: AppBar(title: Text(AppStrings.t(context, 'comeback_plan'))),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(20),
@@ -88,9 +89,9 @@ class _ComebackPageState extends State<ComebackPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Not the result you wanted.',
-                    style: TextStyle(
+                  Text(
+                    AppStrings.t(context, 'not_result_wanted_plain'),
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
@@ -98,7 +99,7 @@ class _ComebackPageState extends State<ComebackPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Here is your 7-day plan to beat it.',
+                    AppStrings.t(context, 'here_is_7day_plan'),
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
                   ),
                   const SizedBox(height: 16),
@@ -106,14 +107,14 @@ class _ComebackPageState extends State<ComebackPage> {
                     children: [
                       Expanded(
                         child: _MiniStat(
-                          label: 'Last score',
+                          label: AppStrings.t(context, 'last_score'),
                           value: '$_formattedScore/20',
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _MiniStat(
-                          label: 'Target',
+                          label: AppStrings.t(context, 'target'),
                           value: '10/20',
                         ),
                       ),
@@ -121,7 +122,10 @@ class _ComebackPageState extends State<ComebackPage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: _MiniStat(
-                            label: improvement >= 0 ? 'Up' : 'Down',
+                            label: AppStrings.t(
+                              context,
+                              improvement >= 0 ? 'up' : 'down',
+                            ),
                             value:
                                 '${improvement >= 0 ? '+' : ''}'
                                 '${improvement.toStringAsFixed(1)}',
@@ -136,15 +140,14 @@ class _ComebackPageState extends State<ComebackPage> {
             ),
             const SizedBox(height: 24),
             Text(
-              'Main target: ${widget.conceptName}',
+              AppStrings.t(context, 'main_target', args: [widget.conceptName]),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Days 1–3 build this concept back up, day 4 is a timed '
-              'rehearsal, and day 7 is the rematch.',
+              AppStrings.t(context, 'plan_explainer'),
               style: TextStyle(color: Colors.grey.shade600),
             ),
             const SizedBox(height: 16),
@@ -159,9 +162,9 @@ class _ComebackPageState extends State<ComebackPage> {
               child: FilledButton.icon(
                 onPressed: () => _launch(plan.days.last),
                 icon: const Icon(Icons.sports_kabaddi),
-                label: const Text(
-                  'Rematch now',
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                label: Text(
+                  AppStrings.t(context, 'rematch_now'),
+                  style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
                 ),
               ),
             ),

@@ -78,6 +78,7 @@ void main() {
       contentRepository: contentRepository,
       progressRepository: progress,
       preferencesRepository: preferences,
+      languageCode: 'en',
     );
   }
 
@@ -88,13 +89,13 @@ void main() {
         weakPoints: [
           weakPoint(
             conceptId: 'function_definition',
-            lessonId: 'math_functions',
+            lessonId: 'math_function_definition',
             mastery: 0.30,
             priority: WeakPointPriority.critical,
           ),
           weakPoint(
-            conceptId: 'domain',
-            lessonId: 'math_functions',
+            conceptId: 'function_domain',
+            lessonId: 'math_function_domain',
             mastery: 0.80,
             priority: WeakPointPriority.low,
           ),
@@ -115,11 +116,11 @@ void main() {
 
     expect(plan.tasks.map((t) => t.title), [
       'Fix Function definition',
-      'Fix Domain',
+      'Fix Function domain',
     ]);
     expect(plan.tasks.first.type, StudyTaskType.weakPoint);
     expect(plan.tasks.first.priority, greaterThan(plan.tasks.last.priority));
-    expect(plan.tasks.first.lessonId, 'math_functions');
+    expect(plan.tasks.first.lessonId, 'math_function_definition');
     expect(plan.tasks.first.conceptId, 'function_definition');
   });
 
@@ -131,14 +132,15 @@ void main() {
       contentRepository: content(),
       progress: _FakeProgressRepository(
         lessonProgress: [
-          // math_functions has 4 questions and is fully answered => finished.
+          // math_function_definition has 2 questions and is fully answered
+          // => finished.
           LessonProgress(
-            id: 'math_functions',
-            title: 'Functions',
-            questionsAnswered: 4,
-            questionsCorrect: 3,
+            id: 'math_function_definition',
+            title: 'Function concept',
+            questionsAnswered: 2,
+            questionsCorrect: 1,
             xpEarned: 20,
-            accuracy: 0.75,
+            accuracy: 0.5,
             updatedAt: now,
           ),
         ],
@@ -161,9 +163,9 @@ void main() {
         .map((t) => t.lessonId)
         .toList();
 
-    expect(lessonIds, contains('math_derivatives'));
-    expect(lessonIds, contains('physics_motion'));
-    expect(lessonIds, isNot(contains('math_functions')));
+    expect(lessonIds, contains('math_derivative_definition'));
+    expect(lessonIds, contains('physics_motion_basics'));
+    expect(lessonIds, isNot(contains('math_function_definition')));
     expect(plan.totalMinutes, lessThanOrEqualTo(plan.availableMinutes));
   });
 
@@ -185,7 +187,7 @@ void main() {
     final plan = await repository.generateTodayPlan();
 
     final lessonIds = plan.tasks.map((t) => t.lessonId).toList();
-    expect(lessonIds, ['physics_motion']);
+    expect(lessonIds, ['physics_motion_basics']);
   });
 
   test('weak points respect preferred subjects through their lesson',
@@ -196,13 +198,13 @@ void main() {
         weakPoints: [
           weakPoint(
             conceptId: 'function_definition',
-            lessonId: 'math_functions',
+            lessonId: 'math_function_definition',
             mastery: 0.20,
             priority: WeakPointPriority.critical,
           ),
           weakPoint(
             conceptId: 'motion_basics',
-            lessonId: 'physics_motion',
+            lessonId: 'physics_motion_basics',
             mastery: 0.35,
             priority: WeakPointPriority.high,
           ),
@@ -274,7 +276,7 @@ void main() {
         weakPoints: [
           weakPoint(
             conceptId: 'function_definition',
-            lessonId: 'math_functions',
+            lessonId: 'math_function_definition',
             mastery: 0.10,
             priority: WeakPointPriority.critical,
           ),
@@ -304,13 +306,13 @@ void main() {
         weakPoints: [
           weakPoint(
             conceptId: 'function_definition',
-            lessonId: 'math_functions',
+            lessonId: 'math_function_definition',
             mastery: 0.60,
             priority: WeakPointPriority.medium,
           ),
           weakPoint(
-            conceptId: 'domain',
-            lessonId: 'math_functions',
+            conceptId: 'function_domain',
+            lessonId: 'math_function_domain',
             mastery: 0.65,
             priority: WeakPointPriority.medium,
           ),
@@ -331,7 +333,7 @@ void main() {
 
     expect(plan.tasks.map((t) => t.title), [
       'Fix Function definition',
-      'Fix Domain',
+      'Fix Function domain',
     ]);
   });
 }

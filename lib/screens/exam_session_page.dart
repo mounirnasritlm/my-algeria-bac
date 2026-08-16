@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
 import '../data/achievement_engine.dart';
 import '../data/achievement_repository.dart';
 import '../data/content_repository.dart';
@@ -9,6 +10,7 @@ import '../data/exam_scoring.dart';
 import '../data/exam_session_repository.dart';
 import '../data/progress_repository.dart';
 import '../data/streak_engine.dart';
+import '../l10n/app_strings.dart';
 import '../models/exam.dart';
 import '../models/exam_attempt.dart';
 import '../models/exam_session.dart';
@@ -93,6 +95,7 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
   }
 
   Future<void> _load() async {
+    final languageCode = appLanguageWithoutListening(context);
     final exam = await widget.contentRepository.getExam(widget.examId);
     final questions =
         await widget.contentRepository.getQuestionsForExam(widget.examId);
@@ -100,7 +103,7 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
     String? subjectName;
     if (exam != null) {
       final subject = await widget.contentRepository.getSubject(exam.subjectId);
-      subjectName = subject?.name;
+      subjectName = subject?.nameForLanguage(languageCode);
     }
 
     final resumable = await _sessions.getInProgressSession(widget.examId);
@@ -240,18 +243,22 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Submit exam?'),
+        title: Text(AppStrings.t(context, 'submit_exam_question')),
         content: Text(
           unanswered > 0
-              ? 'You have $unanswered unanswered question'
-                  '${unanswered == 1 ? '' : 's'}. '
-                  'Unanswered questions score zero.'
-              : 'You answered every question. Submit your exam now?',
+              ? unanswered == 1
+                  ? AppStrings.t(context, 'submit_unanswered_one')
+                  : AppStrings.t(
+                      context,
+                      'submit_unanswered_many',
+                      args: [unanswered],
+                    )
+              : AppStrings.t(context, 'submit_all_answered'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Keep working'),
+            child: Text(AppStrings.t(context, 'keep_working')),
           ),
           FilledButton(
             onPressed: () {
@@ -260,7 +267,7 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
               _ticker?.cancel();
               _finish(autoSubmitted: false);
             },
-            child: const Text('Submit'),
+            child: Text(AppStrings.t(context, 'submit')),
           ),
         ],
       ),
@@ -466,21 +473,21 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
     }
 
     if (_exam == null) {
-      return const Scaffold(
-        body: Center(child: Text('Exam not found.')),
+      return Scaffold(
+        body: Center(child: Text(AppStrings.t(context, 'exam_not_found'))),
       );
     }
 
     if (_questions.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('This exam has no questions yet.')),
+      return Scaffold(
+        body: Center(child: Text(AppStrings.t(context, 'exam_no_questions'))),
       );
     }
 
     final session = _session;
     if (session == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('BAC Boss')),
+        appBar: AppBar(title: Text(AppStrings.t(context, 'bac_boss'))),
         body: _BossIntro(
           subjectName: _subjectName,
           durationMinutes: _exam!.durationMinutes,
@@ -496,7 +503,7 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('BAC Boss'),
+        title: Text(AppStrings.t(context, 'bac_boss')),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
@@ -542,15 +549,20 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
                     children: [
                       Expanded(
                         child: Text(
-                          'Question ${session.currentIndex + 1} of '
-                          '${session.totalQuestions}',
+                          AppStrings.t(context, 'question_of', args: [
+                            session.currentIndex + 1,
+                            session.totalQuestions,
+                          ]),
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w800,
                               ),
                         ),
                       ),
                       Text(
-                        '${session.answeredCount}/${session.totalQuestions} answered',
+                        AppStrings.t(context, 'answered_of', args: [
+                          session.answeredCount,
+                          session.totalQuestions,
+                        ]),
                         style: TextStyle(color: Colors.grey.shade600),
                       ),
                     ],
@@ -587,14 +599,18 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
                         size: 18,
                         color: session.currentFlagged ? Colors.orange : null,
                       ),
-                      label: Text(session.currentFlagged ? 'Flagged' : 'Flag'),
+                      label: Text(
+                        session.currentFlagged
+                            ? AppStrings.t(context, 'flagged')
+                            : AppStrings.t(context, 'flag'),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 4),
                   OutlinedButton.icon(
                     onPressed: _openNavigator,
                     icon: const Icon(Icons.grid_view_outlined),
-                    label: const Text('Question navigator'),
+                    label: Text(AppStrings.t(context, 'question_navigator')),
                   ),
                 ],
               ),
@@ -607,7 +623,7 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
                     child: OutlinedButton(
                       onPressed:
                           session.canGoPrevious ? () => _goTo(session.currentIndex - 1) : null,
-                      child: const Text('Previous'),
+                      child: Text(AppStrings.t(context, 'previous')),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -615,11 +631,11 @@ class _ExamSessionPageState extends State<ExamSessionPage> {
                     child: session.isLast
                         ? FilledButton(
                             onPressed: _confirmSubmit,
-                            child: const Text('Submit exam'),
+                            child: Text(AppStrings.t(context, 'submit_exam')),
                           )
                         : FilledButton(
                             onPressed: () => _goTo(session.currentIndex + 1),
-                            child: const Text('Next'),
+                            child: Text(AppStrings.t(context, 'next')),
                           ),
                   ),
                 ],
@@ -689,7 +705,7 @@ class _BossIntro extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'BAC BOSS',
+            AppStrings.t(context, 'bac_boss').toUpperCase(),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w900,
@@ -698,7 +714,7 @@ class _BossIntro extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            subjectName ?? 'Full paper',
+            subjectName ?? AppStrings.t(context, 'full_paper'),
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w800,
@@ -712,26 +728,26 @@ class _BossIntro extends StatelessWidget {
                 children: [
                   _BossInfoRow(
                     icon: Icons.timer_outlined,
-                    label: 'Time',
+                    label: AppStrings.t(context, 'time'),
                     value: _durationText,
                   ),
                   const SizedBox(height: 14),
                   _BossInfoRow(
                     icon: Icons.quiz_outlined,
-                    label: 'Questions',
+                    label: AppStrings.t(context, 'questions'),
                     value: '$questionCount',
                   ),
                   const SizedBox(height: 14),
-                  const _BossInfoRow(
+                  _BossInfoRow(
                     icon: Icons.block,
-                    label: 'Hints',
-                    value: 'Disabled',
+                    label: AppStrings.t(context, 'hints'),
+                    value: AppStrings.t(context, 'disabled'),
                   ),
                   const SizedBox(height: 14),
-                  const _BossInfoRow(
+                  _BossInfoRow(
                     icon: Icons.notifications_off,
-                    label: 'Distractions',
-                    value: 'Disabled',
+                    label: AppStrings.t(context, 'distractions'),
+                    value: AppStrings.t(context, 'disabled'),
                   ),
                 ],
               ),
@@ -744,11 +760,9 @@ class _BossIntro extends StatelessWidget {
               color: Colors.orange.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(18),
             ),
-            child: const Text(
-              'Treat this like a real exam. No hints, no XP popups, '
-              'no interruptions. Manage the clock and review your '
-              'answers before submitting.',
-              style: TextStyle(fontWeight: FontWeight.w600, height: 1.45),
+            child: Text(
+              AppStrings.t(context, 'exam_intro_rules'),
+              style: const TextStyle(fontWeight: FontWeight.w600, height: 1.45),
             ),
           ),
           if (resumable != null) ...[
@@ -770,9 +784,11 @@ class _BossIntro extends StatelessWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'You have an unfinished attempt'
-                      '${remaining == null ? '' : ' — $remaining seconds left'}.'
-                      '\nResuming keeps your answers and the clock.',
+                      remaining == null
+                          ? AppStrings.t(context, 'resume_note_no_time')
+                          : AppStrings.t(context, 'resume_note', args: [
+                              remaining,
+                            ]),
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -785,7 +801,11 @@ class _BossIntro extends StatelessWidget {
             height: 56,
             child: FilledButton(
               onPressed: onStart,
-              child: Text(resumable != null ? 'Resume exam' : 'Enter the Boss'),
+              child: Text(
+                resumable != null
+                    ? AppStrings.t(context, 'resume_exam')
+                    : AppStrings.t(context, 'enter_the_boss'),
+              ),
             ),
           ),
         ],
@@ -845,17 +865,26 @@ class _QuestionNavigatorSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Question navigator',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+            Text(
+              AppStrings.t(context, 'question_navigator'),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 6),
             Wrap(
               spacing: 14,
-              children: const [
-                _LegendDot(color: Colors.grey, label: 'Unanswered'),
-                _LegendDot(color: Color(0xFF2563EB), label: 'Answered'),
-                _LegendDot(color: Color(0xFFF59E0B), label: 'Flagged'),
+              children: [
+                _LegendDot(
+                  color: Colors.grey,
+                  label: AppStrings.t(context, 'unanswered'),
+                ),
+                _LegendDot(
+                  color: const Color(0xFF2563EB),
+                  label: AppStrings.t(context, 'answered'),
+                ),
+                _LegendDot(
+                  color: const Color(0xFFF59E0B),
+                  label: AppStrings.t(context, 'flagged'),
+                ),
               ],
             ),
             const SizedBox(height: 16),

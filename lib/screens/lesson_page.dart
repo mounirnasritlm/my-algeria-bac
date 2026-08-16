@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
 import '../data/content_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/concept.dart';
 import '../models/lesson.dart';
 import '../models/question.dart';
@@ -57,7 +59,9 @@ class _LessonPageState extends State<LessonPage> {
       builder: (context, snapshot) {
         return Scaffold(
           appBar: AppBar(
-            title: Text(snapshot.data?.subject?.name ?? 'Lesson'),
+             title: Text(snapshot.data?.subject?.nameForLanguage(
+                     appLanguageOf(context)) ??
+                AppStrings.t(context, 'lesson')),
           ),
           body: _buildBody(snapshot),
         );
@@ -74,7 +78,9 @@ class _LessonPageState extends State<LessonPage> {
     final questions = snapshot.data?.questions ?? const <Question>[];
 
     if (lesson == null) {
-      return const Center(child: Text('Lesson not found.'));
+      return Center(
+        child: Text(AppStrings.t(context, 'lesson_not_found')),
+      );
     }
 
     final concepts = snapshot.data!.concepts;
@@ -84,7 +90,7 @@ class _LessonPageState extends State<LessonPage> {
         padding: const EdgeInsets.all(20),
         children: [
           Text(
-            'LESSON',
+            AppStrings.t(context, 'lesson').toUpperCase(),
             style: TextStyle(
               color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w900,
@@ -94,14 +100,14 @@ class _LessonPageState extends State<LessonPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            lesson.title,
+            lesson.titleForLanguage(appLanguageOf(context)),
             style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
           ),
           const SizedBox(height: 10),
           Text(
-            lesson.description,
+            lesson.descriptionForLanguage(appLanguageOf(context)),
             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.grey.shade700,
                   height: 1.5,
@@ -111,16 +117,24 @@ class _LessonPageState extends State<LessonPage> {
 
           _InfoCard(
             icon: Icons.schedule_outlined,
-            title: 'Estimated time',
-            value: '${lesson.estimatedMinutes} minutes',
+            title: AppStrings.t(context, 'estimated_time'),
+            value: AppStrings.t(
+              context,
+              'minutes_value',
+              args: [lesson.estimatedMinutes],
+            ),
           ),
 
           const SizedBox(height: 12),
 
           _InfoCard(
             icon: Icons.lightbulb_outline,
-            title: 'Concepts',
-            value: '${lesson.conceptIds.length} concepts',
+            title: AppStrings.t(context, 'concepts_label'),
+            value: AppStrings.t(
+              context,
+              'concepts_count',
+              args: [lesson.conceptIds.length],
+            ),
           ),
 
           const SizedBox(height: 24),
@@ -130,7 +144,7 @@ class _LessonPageState extends State<LessonPage> {
           const SizedBox(height: 24),
 
           Text(
-            'Lesson content',
+            AppStrings.t(context, 'lesson_content'),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
@@ -161,8 +175,12 @@ class _LessonPageState extends State<LessonPage> {
               icon: const Icon(Icons.play_arrow),
               label: Text(
                 questions.isEmpty
-                    ? 'Quiz unavailable'
-                    : 'Start quiz (${questions.length})',
+                    ? AppStrings.t(context, 'quiz_unavailable')
+                    : AppStrings.t(
+                        context,
+                        'start_quiz',
+                        args: [questions.length],
+                      ),
               ),
             ),
           ),
@@ -262,19 +280,18 @@ class _DemoContentWarning extends StatelessWidget {
           color: Colors.amber.withValues(alpha: 0.35),
         ),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
+          const Icon(
             Icons.info_outline,
             color: Colors.amber,
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'This is demonstration content only. '
-              'It is not official BAC material.',
-              style: TextStyle(
+              AppStrings.t(context, 'demo_content_warning'),
+              style: const TextStyle(
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -295,10 +312,10 @@ class _LessonContentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bullets = concepts.isEmpty
-        ? const [
-            'Understand the core idea.',
-            'Recognize the important concepts.',
-            'Practice with questions.',
+        ? [
+            AppStrings.t(context, 'bullet_core_idea'),
+            AppStrings.t(context, 'bullet_important_concepts'),
+            AppStrings.t(context, 'bullet_practice'),
           ]
         : [
             for (final concept in concepts) concept.name,
@@ -311,7 +328,7 @@ class _LessonContentCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'What you will learn',
+              AppStrings.t(context, 'what_you_will_learn'),
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w900,
                   ),

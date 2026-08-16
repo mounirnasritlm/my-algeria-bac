@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../config/app_language_context.dart';
 import '../data/content_repository.dart';
 import '../data/exam_session_repository.dart';
 import '../data/progress_repository.dart';
+import '../l10n/app_strings.dart';
 import '../models/exam.dart';
 import 'exam_session_page.dart';
 
@@ -29,14 +31,28 @@ class BacPage extends StatefulWidget {
 
 class _BacPageState extends State<BacPage> {
   late Future<List<_ExamTile>> _examsFuture;
+  String? _languageCode;
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final languageCode = appLanguageOf(context);
+    if (_languageCode == languageCode) {
+      return;
+    }
+
+    _languageCode = languageCode;
     _examsFuture = _loadTiles();
   }
 
   Future<List<_ExamTile>> _loadTiles() async {
+    final languageCode =
+        _languageCode ?? appLanguageWithoutListening(context);
     final exams = await widget.contentRepository.getExams();
 
     final tiles = <_ExamTile>[];
@@ -44,7 +60,10 @@ class _BacPageState extends State<BacPage> {
       final subject =
           await widget.contentRepository.getSubject(exam.subjectId);
       tiles.add(
-        _ExamTile(exam: exam, subjectName: subject?.name),
+        _ExamTile(
+          exam: exam,
+          subjectName: subject?.nameForLanguage(languageCode),
+        ),
       );
     }
 
@@ -73,7 +92,7 @@ class _BacPageState extends State<BacPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('BAC Arena')),
+      appBar: AppBar(title: Text(AppStrings.t(context, 'bac_arena'))),
       body: FutureBuilder<List<_ExamTile>>(
         future: _examsFuture,
         builder: (context, snapshot) {
@@ -82,7 +101,7 @@ class _BacPageState extends State<BacPage> {
           }
 
           if (snapshot.hasError) {
-            return const Center(child: Text('Could not load exams.'));
+            return Center(child: Text(AppStrings.t(context, 'could_not_load_exams')));
           }
 
           final tiles = snapshot.data ?? const <_ExamTile>[];
