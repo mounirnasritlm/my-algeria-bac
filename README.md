@@ -6,9 +6,13 @@ August 31, 2026).
 
 ## Status
 
-**Milestone 0 — app shell.** Single-file UI shell (theme + 5-tab navigation +
-Home dashboard). All Home values are static placeholders; the data model
-backbone comes next. See `docs/PROJECT_MAP.md` and `docs/TASKS.md`.
+**Milestone 2 — learning core + gamification + Arabic-first localization.**
+Subjects/chapters/lessons, quizzes, timed BAC Boss exams with autosave, XP and
+levels, achievements, streaks, smart study plan, and a catalog-driven UI in
+French/Arabic/English (Arabic-primary). Stabilization V1 done: developer tools
+behind a feature flag, database migration tests, and CI
+(`.github/workflows/ci.yml`). See `docs/PROJECT_MAP.md`, `docs/TASKS.md`, and
+`docs/DECISIONS.md` (D-010).
 
 ## Prerequisites
 

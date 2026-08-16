@@ -135,11 +135,14 @@ class GamificationService {
     final subjects = await contentRepository.getSubjects();
 
     for (final subject in subjects) {
-      final lessons = await contentRepository
-          .getLessonsForSubject(subject.id);
+      final chapters = await contentRepository.getChaptersForSubject(subject.id);
 
-      for (final lesson in lessons) {
-        map[lesson.id] = subject.id;
+      for (final chapter in chapters) {
+        final lessons = await contentRepository.getLessonsForChapter(chapter.id);
+
+        for (final lesson in lessons) {
+          map[lesson.id] = subject.id;
+        }
       }
     }
 

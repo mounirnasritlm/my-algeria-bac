@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -11,10 +12,20 @@ class ProgressDatabase {
   static const _databaseName = 'user_progress.db';
   static const _databaseVersion = 8;
 
+  /// Current schema version, exposed for diagnostics (developer tools).
+  static const int databaseVersion = _databaseVersion;
+
   Future<Database>? _database;
 
   Future<Database> get database {
     return _database ??= _open();
+  }
+
+  /// Drops the cached database future so tests can re-open against a fresh
+  /// FakeAsync zone between cases.
+  @visibleForTesting
+  static void resetForTesting() {
+    instance._database = null;
   }
 
   Future<Database> _open() async {

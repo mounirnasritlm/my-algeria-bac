@@ -10,9 +10,9 @@ import 'package:my_algeria_bac/data/content_repository.dart';
 import 'package:my_algeria_bac/data/progress_repository.dart';
 import 'package:my_algeria_bac/data/streak_repository.dart';
 import 'package:my_algeria_bac/models/achievement.dart';
+import 'package:my_algeria_bac/models/chapter.dart';
 import 'package:my_algeria_bac/models/concept_mastery.dart';
 import 'package:my_algeria_bac/models/lesson.dart';
-import 'package:my_algeria_bac/models/source.dart';
 import 'package:my_algeria_bac/models/streak.dart';
 import 'package:my_algeria_bac/models/subject.dart';
 import 'package:my_algeria_bac/services/gamification_service.dart';
@@ -89,10 +89,11 @@ class _FakeContent extends ContentRepository {
     return _getSubjectIds().map((id) {
       return Subject(
         id: id,
-        name: id,
-        language: 'en',
+        names: {'en': id},
         icon: '',
+        chapterIds: const [],
         lessonIds: const [],
+        order: 1,
       );
     }).toList();
   }
@@ -101,7 +102,21 @@ class _FakeContent extends ContentRepository {
       lessonToSubject.values.expand((e) => e).toSet().toList();
 
   @override
-  Future<List<Lesson>> getLessonsForSubject(String subjectId) async {
+  Future<List<Chapter>> getChaptersForSubject(String subjectId) async {
+    return [
+      Chapter(
+        id: 'chapter_$subjectId',
+        subjectId: subjectId,
+        names: {'en': subjectId},
+        lessonIds: const [],
+        order: 1,
+      ),
+    ];
+  }
+
+  @override
+  Future<List<Lesson>> getLessonsForChapter(String chapterId) async {
+    final subjectId = chapterId.replaceFirst('chapter_', '');
     final ids = <String>[];
     for (final entry in lessonToSubject.entries) {
       if (entry.value.contains(subjectId)) {
@@ -112,16 +127,13 @@ class _FakeContent extends ContentRepository {
       for (final id in ids)
         Lesson(
           id: id,
-          title: id,
+          titles: {'en': id},
+          descriptions: const {},
           subjectId: subjectId,
-          description: '',
+          chapterId: chapterId,
           conceptIds: const [],
           estimatedMinutes: 0,
-          source: ContentSource(
-            sourceType: 'demo_content',
-            sourceName: 'demo',
-            verified: false,
-          ),
+          sourceId: 'demo_source',
         ),
     ];
   }

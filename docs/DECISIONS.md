@@ -109,3 +109,24 @@ entries; never rewrite history without a note.
   still stores choice indexes only — FIX-20 + a schema v2 migration are planned
   before any answer model generalization is persisted.
 - SOURCE: Rules.md §2/§10; CODE_REVIEW FIX-01..05.
+
+## D-010 — Stabilization V1: dev tools, DB tests, app label, CI
+
+- DECISION: Close the stabilization gaps found by the repo-preparation audit.
+  (1) Developer tools: a read-only diagnostics panel (`lib/dev/developer_menu.dart`)
+  surfaced from the Profile screen only when `FeatureFlags.developerTools` is
+  enabled (off by default; English-only, dev-facing). (2) Database tests:
+  `sqflite_common_ffi` added as a dev dependency so `ProgressDatabase` v8
+  CREATE/upgrade SQL executes in unit tests; "old version" states are built by
+  dropping later tables and downgrading `PRAGMA user_version`, exercising the
+  real upgrade branches without hand-recreating historical schemas.
+  (3) User-facing app name separated from the technical name: the Android
+  launcher label is now `MY Algeria BAC` while the Flutter project keeps the
+  package name `my_algeria_bac`. (4) Dependency/secrets audit: all direct
+  dependencies up to date, no secrets found in tracked files. (5) CI:
+  `.github/workflows/ci.yml` runs `analyze` + `test` on pushes/PRs.
+- REASON: Stabilization before creating public repositories — CI from day one,
+  schema upgrades proven, and no technical identifiers leaking to users.
+- STATUS: Accepted.
+- SOURCE: Stabilization review checklist (design system, settings, flags,
+  architecture, DB tests, deps/secrets, repos+CI, app name).

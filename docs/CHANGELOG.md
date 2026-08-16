@@ -4,6 +4,34 @@ All notable changes to this project are documented in this file.
 Format based on [Keep a Changelog](https://keepachangelog.com/). Dates use
 YYYY-MM-DD.
 
+## [0.2.0] - 2026-08-16
+
+### Added
+- Learning core: subjects → chapters → lessons, demo content with provenance,
+  content repository (assets + JSON), quiz engine with mastery feedback.
+- BAC Boss: timed exam sessions with autosave/resume, flags, navigator,
+  auto-submit on expiry, and a full exam report with comeback plan.
+- Gamification: XP ledger, levels + BAC ranks, achievements (localized),
+  streak 2.0 with daily goals, smart study plan with weak-point priorities.
+- Localization: catalog-driven UI (`AppStrings.t`) in French/Arabic/English,
+  Arabic-primary (`appLanguage = 'ar'`) with Arabic demo content; engine-layer
+  strings centralized in `lib/l10n/engine_strings.dart`.
+- Developer tools: diagnostics panel (`lib/dev/developer_menu.dart`) gated
+  behind `FeatureFlags.developerTools` (off by default).
+- Database tests: `sqflite_common_ffi` dev dependency; schema creation and
+  v1→v8 / v7→v8 migration tests (`test/database_migration_test.dart`).
+- CI: `.github/workflows/ci.yml` (flutter analyze + test on push/PR).
+
+### Changed
+- Android launcher label: `my_algeria_bac` → `MY Algeria BAC` (technical
+  package name unchanged).
+- Tests updated for Arabic-primary defaults (widget/app_strings/profile/plan/
+  exam-session suites).
+
+### Security
+- Dependency/secrets audit (2026-08-16): all direct dependencies up to date;
+  no API keys, tokens, or secrets found in tracked files. See DECISIONS D-010.
+
 ## [0.1.0] - 2026-08-14
 
 ### Added
